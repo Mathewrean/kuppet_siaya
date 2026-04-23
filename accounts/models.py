@@ -1,0 +1,133 @@
+# accounts/models.py
+
+from django.db import models
+from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import BaseUserManager
+
+
+class CustomUserManager(BaseUserManager):
+    def create_user(self, tsc_number, email, password=None, **extra_fields):
+        if not tsc_number:
+            raise ValueError(_('Users must have a TSC number'))
+        if not email:
+            raise ValueError(_('Users must have an email address'))
+
+        user = self.model(
+            tsc_number=tsc_number,
+            email=self.normalize_email(email),
+            **extra_fields
+        )
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, tsc_number, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
+        extra_fields.setdefault('approval_status', 'APPROVED') # Superusers are always approved
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError(_('Super user must have is_staff=True.'))
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError(_('Super user must have is_superuser=True.'))
+
+        return self.create_user(tsc_number, email, password, **extra_fields)
+
+
+class CustomUser(AbstractUser):
+    # Unique identifier for teachers
+    tsc_number = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(_('email address'), unique=True)
+
+    # Fields from registration form
+    phone_number = models.CharField(max_length=20, blank=True)
+    sub_county = models.CharField(max_length=100, blank=True)
+    school = models.CharField(max_length=150, blank=True)
+
+    # Approval fields
+    APPROVAL_STATUS_CHOICES = [
+        ('PENDING', _('Pending Approval')),
+        ('APPROVED', _('Approved')),
+        ('REJECTED', _('Rejected')),
+    ]
+    approval_status = models.CharField(max_length=10, choices=APPROVAL_STATUS_CHOICES, default='PENDING')
+    approval_date = models.DateTimeField(null=True, blank=True)
+    approved_by = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_users'
+    )
+
+    # For TOTP (Two-Factor Authentication)
+    totp_secret = models.CharField(max_length=16, blank=True)
+    totp_enabled = models.BooleanField(default=False)
+
+    # Usernames are not suitable for this context, use email or TSC number
+    username = None
+    USERNAME_FIELD = 'tsc_number' # Use TSC number for login
+    REQUIRED_FIELDS = ['email']
+
+    objects = CustomUserManager()
+
+    def __str__(self):
+        return f"{self.get_full_name()} ({self.tsc_number})"
+
+    def has_perm(self, perm, obj=None):
+        # Handle staff and superuser permissions
+        if self.is_active and self.is_superuser:
+            return True
+        return super().has_perm(perm, obj)
+
+    def has_module_perms(self, app_label):
+        # Handle staff and superuser permissions
+        if self.is_active and self.is_superuser:
+            return True
+        return super().has_module_perms(app_label)
+
+
+# Dummy models for illustrating relationships and Admin panel structure
+# These will be further refined based on the project requirements.
+
+class BBFContribution(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bbf_contributions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    contribution_date = models.DateField()
+    reference_number = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=50) # e.g., 'Paid', 'Pending', 'Failed'
+
+    def __str__(self):
+        return f"BBF contribution of {self.amount} by {self.user.get_full_name()} on {self.contribution_date}"
+
+class SupportTicket(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='support_tickets')
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=50, default='Open') # e.g., 'Open', 'In Progress', 'Resolved'
+
+    def __str__(self):
+        return f"Support Ticket #{self.pk} - {self.subject} ({self.status})"
+
+
+# Placeholder for Sub-County and School models for dynamic dropdowns
+# These would typically be in a separate 'common' or 'config' app, or 'core' app.
+# For now, they are defined here for clarity, but would need to be
+# properly integrated into the database schema.
+
+class SubCounty(models.Model):
+    name = models.CharField(max_length=150, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class School(models.Model):
+    name = models.CharField(max_length=200)
+    sub_county = models.ForeignKey(SubCounty, related_name='schools', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.name} ({self.sub_county.name})"

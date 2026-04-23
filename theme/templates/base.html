@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KUPPET Siaya Branch</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <header class="sticky top-0 bg-primary-green text-white z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <a href="/">
+                    <img src="{% static 'images/logo.png' %}" alt="KUPPET Siaya Logo" class="h-12 md:h-16">
+                </a>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="/" class="hover:text-secondary-yellow">Home</a>
+                <a href="/about/" class="hover:text-secondary-yellow">About</a>
+                <a href="/projects/" class="hover:text-secondary-yellow">Projects</a>
+                <a href="/gallery/" class="hover:text-secondary-yellow">Gallery</a>
+                <a href="/contact/" class="hover:text-secondary-yellow">Contact</a>
+            </nav>
+            <div class="flex items-center">
+                {% if user.is_authenticated %}
+                    <a href="/dashboard/" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded font-bold">Dashboard</a>
+                {% else %}
+                    <a href="/accounts/login/" class="border border-secondary-yellow text-secondary-yellow px-4 py-2 rounded hover:bg-secondary-yellow hover:text-primary-green">Member Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="bg-primary-green text-white py-8 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>
