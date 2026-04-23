@@ -48,6 +48,32 @@ class ContactMessage(models.Model):
     def __str__(self):
         return f"Message from {self.first_name} {self.last_name} ({self.subject})"
 
+
+class BECMember(models.Model):
+    name = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)
+    photo = models.ImageField(upload_to='bec_photos/', blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.name} - {self.title}"
+
+
+class BGCMember(models.Model):
+    name = models.CharField(max_length=200)
+    title = models.CharField(max_length=200)
+    photo = models.ImageField(upload_to='bgc_photos/', blank=True, null=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return f"{self.name} - {self.title}"
+
 class BBFStatus(models.Model):
     # This model is illustrative. Actual BBF contributions and status might be more complex
     # and potentially linked to a user/profile model.

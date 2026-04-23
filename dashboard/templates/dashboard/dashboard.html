@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard - KUPPET Siaya Branch{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-primary-green mb-6">Welcome back, {{ user.get_full_name }}</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- BBF Status -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">BBF Status</h2>
+            <span class="px-3 py-1 rounded {% if bbf_status == 'Good Standing' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">{{ bbf_status }}</span>
+        </div>
+        
+        <!-- Membership Status -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Membership Status</h2>
+            <p>Active Member Since {{ user.approval_date|date:"M Y" }}</p>
+        </div>
+        
+        <!-- Financial Statements -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Financial Statements</h2>
+            <a href="{% url 'financials' %}" class="text-primary-green hover:text-secondary-yellow">View Statements</a>
+        </div>
+        
+        <!-- Request Info -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4">Support</h2>
+            <a href="{% url 'support' %}" class="bg-primary-green text-white px-4 py-2 rounded">Request Info</a>
+        </div>
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold mb-4">Quick Links</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{% url 'profile' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Update Profile</a>
+            <a href="{% url 'bbf_status' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Full BBF History</a>
+            <a href="{% url 'support' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Contact Support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

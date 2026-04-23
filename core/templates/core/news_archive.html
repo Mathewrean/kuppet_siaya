@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}News Archive - KUPPET Siaya Branch{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-primary-green mb-6">News Archive</h1>
+    
+    <!-- Search Bar -->
+    <form method="get" class="mb-6">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search news..." class="w-full md:w-1/2 px-4 py-2 border rounded">
+        <button type="submit" class="ml-2 bg-primary-green text-white px-4 py-2 rounded">Search</button>
+    </form>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <h2 class="text-xl font-bold mb-4">Categories</h2>
+            <ul class="space-y-2">
+                <li><a href="?category=General{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'General' %}font-bold{% endif %}">General</a></li>
+                <li><a href="?category=BEC Updates{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'BEC Updates' %}font-bold{% endif %}">BEC Updates</a></li>
+                <li><a href="?category=BGC Updates{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'BGC Updates' %}font-bold{% endif %}">BGC Updates</a></li>
+                <li><a href="?category=BBF News{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'BBF News' %}font-bold{% endif %}">BBF News</a></li>
+                <li><a href="?category=BUS News{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'BUS News' %}font-bold{% endif %}">BUS News</a></li>
+                <li><a href="?category=Events{% if search %}&search={{ search }}{% endif %}" class="text-primary-green hover:text-secondary-yellow {% if category == 'Events' %}font-bold{% endif %}">Events</a></li>
+            </ul>
+        </div>
+        
+        <!-- News List -->
+        <div class="lg:col-span-3">
+            <div class="space-y-6">
+                {% for post in page_obj %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="md:flex">
+                        {% if post.featured_image %}
+                        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full md:w-48 h-48 object-cover">
+                        {% endif %}
+                        <div class="p-4 flex-grow">
+                            {% if post.category %}
+                            <span class="bg-secondary-yellow text-primary-green px-2 py-1 rounded text-sm">{{ post.category }}</span>
+                            {% endif %}
+                            <h3 class="text-xl font-bold mt-2"><a href="{% url 'news_detail' post.slug %}" class="text-primary-green hover:text-secondary-yellow">{{ post.title }}</a></h3>
+                            <p class="text-gray-600 mt-2">{{ post.story|truncatewords:30 }}</p>
+                            <p class="text-sm text-gray-500 mt-2">{{ post.published_date|date:"F j, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            <div class="mt-8">
+                {% if page_obj.has_other_pages %}
+                <div class="flex justify-center">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="bg-primary-green text-white px-4 py-2 rounded mr-2">Previous</a>
+                    {% endif %}
+                    
+                    <span class="px-4 py-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}" class="bg-primary-green text-white px-4 py-2 rounded ml-2">Next</a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple search functionality
+    document.getElementById('search-input').addEventListener('input', function() {
+        const query = this.value.toLowerCase();
+        const posts = document.querySelectorAll('.space-y-6 > div');
+        posts.forEach(post => {
+            const title = post.querySelector('h3').textContent.toLowerCase();
+            const content = post.querySelector('p').textContent.toLowerCase();
+            if (title.includes(query) || content.includes(query)) {
+                post.style.display = '';
+            } else {
+                post.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

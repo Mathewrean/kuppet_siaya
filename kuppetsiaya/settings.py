@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
-
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,10 +22,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z9&-r402=!96+0s90m)njyeon5rw^c@t&5jdyu6v7_7bopr)*m'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 ALLOWED_HOSTS = [
@@ -36,20 +36,20 @@ ALLOWED_HOSTS = [
 ]
 
 # Tailwind CSS Configuration
-TAILWIND_CONFIG = {
-    'theme': {
-        'extend': {
-            'colors': {
-                'primary-green': '#006633',
-                'secondary-yellow': '#FFCC00',
-            },
-        },
-    },
-    'plugins': [
-        '@tailwindcss/forms',
-        '@tailwindcss/typography',
-    ],
-}
+# TAILWIND_CONFIG = {
+#     'theme': {
+#         'extend': {
+#             'colors': {
+#                 'primary-green': '#006633',
+#                 'secondary-yellow': '#FFCC00',
+#             },
+#         },
+#     },
+#     'plugins': [
+#         '@tailwindcss/forms',
+#         '@tailwindcss/typography',
+#     ],
+# }
 
 # Path to npm binary
 # This might need to be adjusted based on your system setup.
@@ -73,8 +73,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Third-party apps
-    'tailwind',
-    'theme',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_email',
+    # 'theme',
     
     # Project apps
     'core',
@@ -88,7 +90,7 @@ INSTALLED_APPS = [
     'support',
 ]
 
-TAILWIND_APP_NAME = 'theme'
+# TAILWIND_APP_NAME = 'theme'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -125,24 +127,14 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'legacy': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'legacy.db',
     }
 }
 
-# Add this to the top of the file:
-# import os
-
-# ... other settings ...
-
-# Include app URLs
-ROOT_URLCONF = 'kuppetsiaya.urls'
-
-# Include app URLs
-# Ensure you have a 'urls.py' in your 'core' and 'accounts' apps
-# and import them here.
-URLS_INCLUDE = [
-    'core.urls',
-    'accounts.urls',
-]
+DATABASE_ROUTERS = ['kuppetsiaya.routers.LegacyRouter']
 
 AUTH_PASSWORD_VALIDATORS = [
     {

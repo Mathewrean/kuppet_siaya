@@ -1,0 +1,12 @@
+Django==4.2.29
+psycopg2-binary
+django-tailwind
+django-otp
+Pillow
+python-decouple
+sendgrid
+django-tinymce
+boto3
+django-storages
+whitenoise
+django-compressor

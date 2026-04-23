@@ -6,6 +6,20 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import BaseUserManager
 
 
+class SubCounty(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class School(models.Model):
+    name = models.CharField(max_length=150)
+    sub_county = models.ForeignKey(SubCounty, on_delete=models.CASCADE, related_name='schools')
+
+    def __str__(self):
+        return f"{self.name} ({self.sub_county.name})"
+
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, tsc_number, email, password=None, **extra_fields):
         if not tsc_number:
@@ -92,12 +106,8 @@ class CustomUser(AbstractUser):
 # Dummy models for illustrating relationships and Admin panel structure
 # These will be further refined based on the project requirements.
 
-class BBFContribution(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bbf_contributions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    contribution_date = models.DateField()
-    reference_number = models.CharField(max_length=100, blank=True)
-    status = models.CharField(max_length=50) # e.g., 'Paid', 'Pending', 'Failed'
+    def __str__(self):
+        return f"{self.subject} - {self.user.get_full_name()}"
 
     def __str__(self):
         return f"BBF contribution of {self.amount} by {self.user.get_full_name()} on {self.contribution_date}"
@@ -131,3 +141,16 @@ class School(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.sub_county.name})"
+
+
+class LegacyTeacher(models.Model):
+    tsc_number = models.CharField(max_length=50, unique=True)
+    full_name = models.CharField(max_length=200)
+    # Add other fields as needed from legacy DB
+
+    class Meta:
+        managed = False
+        db_table = 'teachers'  # Assuming table name in legacy DB
+
+    def __str__(self):
+        return f"{self.full_name} ({self.tsc_number})"

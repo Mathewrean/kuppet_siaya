@@ -1,5 +1,81 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}Contact Us - KUPPET Siaya Branch{% endblock %}
 {% block content %}
-<h1 class="text-3xl font-bold text-primary-green">Contact Us</h1>
-<p class="mt-4">Get in touch with KUPPET Siaya Branch.</p>
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Contact Info -->
+        <div>
+            <h1 class="text-3xl font-bold text-primary-green mb-6">Contact Us</h1>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-4">Get in Touch</h2>
+                <p class="mb-2"><strong>Address:</strong> KUPPET Siaya Branch, Siaya County, Kenya</p>
+                <p class="mb-2"><strong>Phone:</strong> +254 XXX XXX XXX</p>
+                <p class="mb-2"><strong>Email:</strong> info@kuppetsiaya.or.ke</p>
+                <p class="mb-4"><strong>Office Hours:</strong> Monday - Friday, 8:00 AM - 5:00 PM</p>
+                <p>If you are a member, please log in to your dashboard for personalized support.</p>
+            </div>
+        </div>
+        
+        <!-- Contact Form -->
+        <div>
+            <form method="post" class="bg-white p-6 rounded-lg shadow-md">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                    </div>
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                </div>
+                <div class="mb-4">
+                    <label for="tsc_number" class="block text-sm font-medium text-gray-700">TSC Number (Optional)</label>
+                    <input type="text" id="tsc_number" name="tsc_number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                </div>
+                <div class="mb-4">
+                    <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="text" id="phone_number" name="phone_number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                </div>
+                <div class="mb-4">
+                    <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
+                    <input type="text" id="subject" name="subject" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                </div>
+                <div class="mb-4">
+                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
+                    <textarea id="message" name="message" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="consent" name="consent" required class="h-4 w-4 text-primary-green focus:ring-primary-green border-gray-300 rounded">
+                        <span class="ml-2 text-sm text-gray-700">I consent to the processing of my personal data for the purpose of handling this inquiry.</span>
+                    </label>
+                </div>
+                <button type="submit" class="w-full bg-primary-green text-white py-2 px-4 rounded-md hover:bg-secondary-yellow hover:text-primary-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-green">Send Message</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-fill for logged-in users
+    {% if user.is_authenticated %}
+    document.getElementById('first_name').value = '{{ user.first_name }}';
+    document.getElementById('last_name').value = '{{ user.last_name }}';
+    document.getElementById('email').value = '{{ user.email }}';
+    document.getElementById('tsc_number').value = '{{ user.tsc_number }}';
+    document.getElementById('phone_number').value = '{{ user.phone_number }}';
+    // Make them read-only
+    document.getElementById('first_name').readOnly = true;
+    document.getElementById('last_name').readOnly = true;
+    document.getElementById('email').readOnly = true;
+    document.getElementById('tsc_number').readOnly = true;
+    {% endif %}
+</script>
 {% endblock %}

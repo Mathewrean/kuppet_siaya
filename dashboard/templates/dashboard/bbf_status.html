@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}BBF Status - KUPPET Siaya Branch{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-primary-green mb-6">BBF Contribution History</h1>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 class="text-xl font-bold mb-4">Eligibility Calculator</h2>
+        <p>Based on your contributions, you are eligible for member + nuclear family coverage.</p>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-bold mb-4">Contribution History</h2>
+        <table class="w-full">
+            <thead>
+                <tr class="border-b">
+                    <th class="text-left py-2">Date</th>
+                    <th class="text-left py-2">Amount</th>
+                    <th class="text-left py-2">Reference</th>
+                    <th class="text-left py-2">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contribution in contributions %}
+                <tr class="border-b">
+                    <td class="py-2">{{ contribution.contribution_date|date:"M d, Y" }}</td>
+                    <td class="py-2">{{ contribution.amount }}</td>
+                    <td class="py-2">{{ contribution.reference }}</td>
+                    <td class="py-2">{{ contribution.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="#" class="mt-4 inline-block bg-primary-green text-white px-4 py-2 rounded">Download BBF Statement</a>
+    </div>
+</div>
+{% endblock %}

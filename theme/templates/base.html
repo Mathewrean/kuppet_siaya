@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KUPPET Siaya Branch</title>
+    <title>{% block title %}KUPPET Siaya Branch{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
 </head>
@@ -12,7 +12,7 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center">
                 <a href="/">
-                    <img src="{% static 'images/logo.png' %}" alt="KUPPET Siaya Logo" class="h-12 md:h-16">
+                    <img src="{% static 'images/logo.png' %}" alt="KUPPET Siaya Logo" class="h-10 md:h-14">
                 </a>
             </div>
             <nav class="hidden md:flex space-x-6">
@@ -22,22 +22,70 @@
                 <a href="/gallery/" class="hover:text-secondary-yellow">Gallery</a>
                 <a href="/contact/" class="hover:text-secondary-yellow">Contact</a>
             </nav>
-            <div class="flex items-center">
+            <div class="flex items-center space-x-4">
                 {% if user.is_authenticated %}
+                    <span class="hidden md:inline">{{ user.get_full_name }}</span>
                     <a href="/dashboard/" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded font-bold">Dashboard</a>
                 {% else %}
                     <a href="/accounts/login/" class="border border-secondary-yellow text-secondary-yellow px-4 py-2 rounded hover:bg-secondary-yellow hover:text-primary-green">Member Login</a>
                 {% endif %}
+                <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
             </div>
         </div>
+        <nav id="mobile-menu" class="hidden md:hidden bg-primary-green text-white px-4 py-4">
+            <a href="/" class="block py-2 hover:text-secondary-yellow">Home</a>
+            <a href="/about/" class="block py-2 hover:text-secondary-yellow">About</a>
+            <a href="/projects/" class="block py-2 hover:text-secondary-yellow">Projects</a>
+            <a href="/gallery/" class="block py-2 hover:text-secondary-yellow">Gallery</a>
+            <a href="/contact/" class="block py-2 hover:text-secondary-yellow">Contact</a>
+            {% if user.is_authenticated %}
+                <a href="/dashboard/" class="block py-2 bg-secondary-yellow text-primary-green rounded mt-2 text-center">Dashboard</a>
+            {% else %}
+                <a href="/accounts/login/" class="block py-2 border border-secondary-yellow text-secondary-yellow rounded mt-2 text-center">Member Login</a>
+            {% endif %}
+        </nav>
     </header>
-    <main class="container mx-auto px-4 py-8">
+    <main>
         {% block content %}{% endblock %}
     </main>
     <footer class="bg-primary-green text-white py-8 mt-8">
-        <div class="container mx-auto px-4 text-center">
-            <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <p>KUPPET Siaya Branch</p>
+                    <p>Siaya County, Kenya</p>
+                    <p>Phone: +254 XXX XXX XXX</p>
+                    <p>Email: info@kuppetsiaya.or.ke</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/" class="hover:text-secondary-yellow">Home</a></li>
+                        <li><a href="/about/" class="hover:text-secondary-yellow">About</a></li>
+                        <li><a href="/projects/" class="hover:text-secondary-yellow">Projects</a></li>
+                        <li><a href="/gallery/" class="hover:text-secondary-yellow">Gallery</a></li>
+                        <li><a href="/contact/" class="hover:text-secondary-yellow">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Follow Us</h3>
+                    <p>Stay connected with our latest updates.</p>
+                </div>
+            </div>
+            <div class="text-center mt-8 border-t border-white pt-4">
+                <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
+            </div>
         </div>
     </footer>
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
 </body>
 </html>

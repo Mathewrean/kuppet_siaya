@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register - KUPPET Siaya Branch{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold text-primary-green mb-6">Member Registration</h1>
+        <form method="post" id="register-form">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="tsc_number" class="block text-sm font-medium text-gray-700">TSC Number</label>
+                <input type="text" id="tsc_number" name="tsc_number" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                <button type="button" id="verify-tsc" class="mt-2 bg-secondary-yellow text-primary-green px-4 py-1 rounded">Verify TSC</button>
+            </div>
+            <div class="mb-4">
+                <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                <input type="text" id="first_name" name="first_name" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+            </div>
+            <div class="mb-4">
+                <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                <input type="text" id="last_name" name="last_name" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
+            </div>
+            <div class="mb-4">
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+            </div>
+            <div class="mb-4">
+                <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                <input type="text" id="phone_number" name="phone_number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+            </div>
+            <div class="mb-4">
+                <label for="sub_county" class="block text-sm font-medium text-gray-700">Sub-County</label>
+                <select id="sub_county" name="sub_county" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                    <option value="">Select Sub-County</option>
+                    <!-- Add options -->
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="school" class="block text-sm font-medium text-gray-700">School</label>
+                <select id="school" name="school" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                    <option value="">Select School</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+            </div>
+            <button type="submit" class="w-full bg-primary-green text-white py-2 px-4 rounded-md hover:bg-secondary-yellow hover:text-primary-green">Register</button>
+        </form>
+    </div>
+</div>
+<script>
+    document.getElementById('verify-tsc').addEventListener('click', function() {
+        const tsc = document.getElementById('tsc_number').value;
+        fetch(`/accounts/verify-tsc/?tsc=${tsc}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    document.getElementById('first_name').value = data.first_name;
+                    document.getElementById('last_name').value = data.last_name;
+                } else {
+                    alert('TSC Number not found.');
+                }
+            });
+    });
+
+    // Load sub-counties
+    fetch('/api/sub-counties/')
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('sub_county');
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.name;
+                select.appendChild(option);
+            });
+        });
+
+    document.getElementById('sub_county').addEventListener('change', function() {
+        const subCountyId = this.value;
+        const schoolSelect = document.getElementById('school');
+        schoolSelect.innerHTML = '<option value="">Select School</option>';
+        if (subCountyId) {
+            fetch(`/api/schools/?sub_county=${subCountyId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        schoolSelect.appendChild(option);
+                    });
+                });
+        }
+    });
+</script>
+{% endblock %}

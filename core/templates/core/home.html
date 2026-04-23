@@ -1,5 +1,65 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}Home - KUPPET Siaya Branch{% endblock %}
 {% block content %}
-<h1 class="text-4xl font-bold text-primary-green">Welcome to KUPPET Siaya Branch</h1>
-<p class="mt-4">Empowering teachers and promoting excellence in education.</p>
+<div class="container mx-auto px-4 py-8">
+    <!-- Hero Slider -->
+    <div id="hero-slider" class="relative w-full h-64 md:h-96 overflow-hidden rounded-lg mb-8">
+        {% for album in albums %}
+        <div class="slide absolute inset-0 {% if forloop.first %}active{% endif %}">
+            {% if album.cover_image %}
+            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}" class="w-full h-full object-cover">
+            {% else %}
+            <div class="w-full h-full bg-gray-300 flex items-center justify-center">No Image</div>
+            {% endif %}
+            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                <div class="text-center text-white">
+                    <h2 class="text-2xl md:text-4xl font-bold">{{ album.title }}</h2>
+                    <a href="/gallery/" class="mt-4 inline-block bg-secondary-yellow text-primary-green px-6 py-2 rounded">View Gallery</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- News Grid -->
+    <h2 class="text-3xl font-bold text-primary-green mb-6">Latest News</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for post in news %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
+            {% if post.featured_image %}
+            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+            {% endif %}
+            <div class="p-4 flex-grow">
+                {% if post.category %}
+                <span class="bg-secondary-yellow text-primary-green px-2 py-1 rounded text-sm">{{ post.category }}</span>
+                {% endif %}
+                <h3 class="text-xl font-bold mt-2">{{ post.title }}</h3>
+                <p class="text-gray-600 mt-2">{{ post.story|truncatewords:20 }}</p>
+            </div>
+            <div class="p-4 pt-0">
+                <a href="{% url 'news_detail' post.slug %}" class="text-primary-green hover:text-secondary-yellow">Read More</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="text-center mt-8">
+        <a href="{% url 'news_archive' %}" class="bg-primary-green text-white px-6 py-2 rounded hover:bg-secondary-yellow hover:text-primary-green">View All News</a>
+    </div>
+</div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    function showSlide(index) {
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === index);
+        });
+    }
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % slides.length;
+        showSlide(currentSlide);
+    }
+    setInterval(nextSlide, 5000); // Change slide every 5 seconds
+</script>
 {% endblock %}

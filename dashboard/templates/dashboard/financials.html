@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Financial Statements - KUPPET Siaya Branch{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-primary-green mb-6">Financial Statements</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for statement in financial_statements %}
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h3 class="text-xl font-bold">{{ statement.fiscal_year }}</h3>
+            <p class="text-gray-600 mb-4">{{ statement.description }}</p>
+            <a href="{{ statement.document.url }}" class="bg-primary-green text-white px-4 py-2 rounded">Download PDF</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
