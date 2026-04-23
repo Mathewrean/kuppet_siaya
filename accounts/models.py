@@ -103,11 +103,12 @@ class CustomUser(AbstractUser):
         return super().has_module_perms(app_label)
 
 
-# Dummy models for illustrating relationships and Admin panel structure
-# These will be further refined based on the project requirements.
-
-    def __str__(self):
-        return f"{self.subject} - {self.user.get_full_name()}"
+class BBFContribution(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='bbf_contributions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    contribution_date = models.DateField()
+    reference = models.CharField(max_length=100)
+    status = models.CharField(max_length=50, default='Pending')
 
     def __str__(self):
         return f"BBF contribution of {self.amount} by {self.user.get_full_name()} on {self.contribution_date}"

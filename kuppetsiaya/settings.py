@@ -134,7 +134,7 @@ DATABASES = {
     }
 }
 
-DATABASE_ROUTERS = ['kuppetsiaya.routers.LegacyRouter']
+# DATABASE_ROUTERS = ['kuppetsiaya.routers.LegacyRouter']
 
 AUTH_PASSWORD_VALIDATORS = [
     {
