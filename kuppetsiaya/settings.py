@@ -27,7 +27,13 @@ SECRET_KEY = 'django-insecure-z9&-r402=!96+0s90m)njyeon5rw^c@t&5jdyu6v7_7bopr)*m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    "0.0.0.0",
+    "127.0.0.1",
+]
 
 # Tailwind CSS Configuration
 TAILWIND_CONFIG = {
