@@ -125,25 +125,6 @@ class SupportTicket(models.Model):
         return f"Support Ticket #{self.pk} - {self.subject} ({self.status})"
 
 
-# Placeholder for Sub-County and School models for dynamic dropdowns
-# These would typically be in a separate 'common' or 'config' app, or 'core' app.
-# For now, they are defined here for clarity, but would need to be
-# properly integrated into the database schema.
-
-class SubCounty(models.Model):
-    name = models.CharField(max_length=150, unique=True)
-
-    def __str__(self):
-        return self.name
-
-class School(models.Model):
-    name = models.CharField(max_length=200)
-    sub_county = models.ForeignKey(SubCounty, related_name='schools', on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.name} ({self.sub_county.name})"
-
-
 class LegacyTeacher(models.Model):
     tsc_number = models.CharField(max_length=50, unique=True)
     full_name = models.CharField(max_length=200)
