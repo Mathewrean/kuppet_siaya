@@ -1,4 +1,5 @@
 from django.core.paginator import Paginator
+from django.shortcuts import render
 from .models import NewsPost, GalleryAlbum, ContactMessage, BECMember, BGCMember
 
 def home(request):
