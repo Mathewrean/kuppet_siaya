@@ -18,7 +18,11 @@
             <div class="statement-row">
                 <div class="statement-row__meta">
                     <p class="statement-row__title">{{ statement.title }}</p>
-                    <p class="statement-row__detail">{{ statement.fiscal_year }} <span class="mx-2">•</span> PDF document</p>
+                    <p class="statement-row__detail">
+                        {{ statement.fiscal_year }}
+                        <span class="mx-2">•</span>
+                        <span class="statement-row__size">{{ statement.file.size|filesizeformat }}</span>
+                    </p>
                 </div>
                 <a href="{{ statement.file.url }}" class="text-link">Download PDF</a>
             </div>

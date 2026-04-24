@@ -59,9 +59,9 @@
             <div class="site-header__actions">
                 {% if user.is_authenticated %}
                     <span class="member-meta">{{ user.get_full_name|default:user.tsc_number }}</span>
-                    <a href="{% url 'dashboard' %}" class="btn btn-accent">Dashboard</a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-accent header-auth-btn">Dashboard</a>
                 {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline">Member Login</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline header-auth-btn">Member Login</a>
                 {% endif %}
 
                 <button type="button" class="mobile-menu-toggle" data-mobile-nav-open aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
@@ -132,15 +132,15 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="mt-12 bg-[var(--green-dark)] px-6 pb-6 pt-12 text-white">
-        <div class="mx-auto grid max-w-[1200px] gap-10 md:grid-cols-3">
+    <footer class="site-footer mt-12 text-white">
+        <div class="site-footer__grid">
             <div class="space-y-4">
                 <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Branch logo" class="h-12 w-auto">
-                <p class="text-sm text-white/70">KUPPET Siaya Branch digital portal for trusted communication, member services, and branch programmes.</p>
+                <p class="site-footer__tagline">KUPPET Siaya Branch digital portal for trusted communication, member services, and branch programmes.</p>
             </div>
             <div>
-                <h3 class="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-[var(--yellow-primary)]">Quick Links</h3>
-                <div class="space-y-3 text-sm text-white/80">
+                <h3 class="site-footer__heading">Quick Links</h3>
+                <div class="site-footer__links space-y-3">
                     <a href="{% url 'about' %}" class="block hover:text-white hover:underline">About</a>
                     <a href="{% url 'projects' %}" class="block hover:text-white hover:underline">Projects</a>
                     <a href="{% url 'news_archive' %}" class="block hover:text-white hover:underline">News</a>
@@ -149,8 +149,8 @@
                 </div>
             </div>
             <div>
-                <h3 class="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-[var(--yellow-primary)]">Contact</h3>
-                <div class="space-y-3 text-sm text-white/80">
+                <h3 class="site-footer__heading">Contact</h3>
+                <div class="site-footer__contact space-y-3">
                     <p class="flex items-start gap-3">
                         <svg class="mt-0.5 h-5 w-5 shrink-0 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10z"></path>
@@ -174,7 +174,7 @@
                 </div>
             </div>
         </div>
-        <div class="mx-auto mt-8 max-w-[1200px] border-t border-white/10 pt-4 text-center text-[0.8rem] text-white/50">
+        <div class="site-footer__bottom">
             <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
         </div>
     </footer>

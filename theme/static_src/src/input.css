@@ -91,6 +91,10 @@
     min-height: calc(100vh - 64px);
   }
 
+  .hero-section {
+    padding: 0;
+  }
+
   .page-shell {
     @apply mx-auto w-full px-6;
     max-width: 1200px;
@@ -115,7 +119,7 @@
   .section-heading__eyebrow {
     @apply mb-2 block text-xs font-bold uppercase;
     color: var(--yellow-dark);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.04em;
   }
 
   .section-heading__title {
@@ -142,6 +146,12 @@
     @apply inline-flex items-center justify-center gap-2 border px-6 py-2.5 text-sm font-semibold no-underline;
     border-radius: var(--radius);
     transition: var(--transition);
+  }
+
+  .header-auth-btn {
+    padding: 0.5rem 1.25rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
   }
 
   .btn:focus-visible,
@@ -260,7 +270,7 @@
 
   .site-dropdown {
     @apply pointer-events-none absolute left-0 top-full border-t-4 bg-white py-2 opacity-0;
-    border-color: var(--yellow-primary);
+    border-top: 3px solid var(--yellow-primary);
     border-radius: 0 0 var(--radius) var(--radius);
     box-shadow: var(--shadow-card);
     min-width: 200px;
@@ -307,8 +317,9 @@
   }
 
   .mobile-drawer__panel {
-    @apply relative ml-auto flex h-full w-full max-w-full flex-col overflow-y-auto;
+    @apply absolute left-0 right-0 top-0 flex w-full max-w-full flex-col overflow-y-auto;
     background: var(--green-primary);
+    max-height: 100vh;
   }
 
   .mobile-drawer__header {
@@ -880,6 +891,7 @@
   .textarea-input {
     @apply w-full border bg-white px-3.5 py-2.5 text-base;
     border-color: var(--gray-200);
+    border-width: 1.5px;
     border-radius: var(--radius);
     color: var(--dark);
     transition: var(--transition);
@@ -1075,9 +1087,8 @@
   }
 
   .dashboard-heading-bar {
-    @apply mb-8 border bg-white px-6 py-5;
-    border-color: var(--gray-200);
-    border-radius: var(--radius);
+    @apply mb-8 bg-white px-6 py-5;
+    border-bottom: 1px solid var(--gray-200);
   }
 
   .dashboard-heading-bar h1 {
@@ -1111,6 +1122,12 @@
     @apply mb-2 text-xs font-bold uppercase;
     color: var(--gray-500);
     letter-spacing: 0.08em;
+  }
+
+  .welcome-card__kicker {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    font-weight: 400;
   }
 
   .welcome-card {
@@ -1185,6 +1202,11 @@
   .statement-row__detail {
     font-size: 0.8rem;
     color: var(--gray-500);
+  }
+
+  .statement-row__size {
+    color: var(--gray-500);
+    font-size: 0.8rem;
   }
 
   .quick-link-list {
@@ -1327,6 +1349,57 @@
     font-size: 0.875rem;
   }
 
+  .site-footer {
+    background: var(--green-dark);
+    padding: 3rem 1.5rem 1.5rem;
+  }
+
+  .site-footer__grid {
+    @apply mx-auto grid gap-10 md:grid-cols-3;
+    max-width: 1200px;
+  }
+
+  .site-footer__tagline,
+  .site-footer__links,
+  .site-footer__contact {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.875rem;
+  }
+
+  .site-footer__tagline {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .site-footer__heading {
+    margin-bottom: 1rem;
+    color: var(--yellow-primary);
+    font-family: "DM Sans", sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .site-footer__links a,
+  .site-footer__contact a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+  }
+
+  .site-footer__links a:hover,
+  .site-footer__contact a:hover {
+    color: var(--white);
+    text-decoration: underline;
+  }
+
+  .site-footer__bottom {
+    @apply mx-auto mt-8 border-t pt-4 text-center;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    max-width: 1200px;
+  }
+
   .empty-state {
     @apply flex flex-col items-center justify-center gap-3 rounded border bg-white px-6 py-12 text-center text-base;
     border-color: var(--gray-200);
@@ -1416,7 +1489,7 @@
   }
 
   .dashboard-shell {
-    grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-columns: 64px minmax(0, 1fr);
   }
 
   .dashboard-sidebar__logo,

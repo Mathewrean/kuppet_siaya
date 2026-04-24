@@ -4,9 +4,8 @@
 {% block title %}Home - KUPPET Siaya Branch{% endblock %}
 
 {% block content %}
-<section class="section-shell section-shell--tight">
-    <div class="page-shell">
-        <div class="hero-slider surface-card" id="hero-slider">
+<section class="hero-section">
+    <div class="hero-slider" id="hero-slider">
             {% for album in albums %}
                 <div class="hero-slide {% if forloop.first %}is-active{% endif %}" data-slide>
                     <a href="{% if album.slug %}{% url 'gallery_album' album.slug %}{% else %}{% url 'gallery' %}{% endif %}" aria-label="Open {{ album.title }} album">
@@ -47,7 +46,6 @@
                     {% endfor %}
                 </div>
             {% endif %}
-        </div>
     </div>
 </section>
 
