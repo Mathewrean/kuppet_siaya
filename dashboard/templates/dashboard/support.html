@@ -1,28 +1,33 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block title %}Request Info - KUPPET Siaya Branch{% endblock %}
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-3xl font-bold text-primary-green mb-6">Request Information</h1>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Subject</label>
-                <select name="subject" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-                    <option value="BBF Query">BBF Query</option>
-                    <option value="Membership Query">Membership Query</option>
-                    <option value="Financial Query">Financial Query</option>
-                    <option value="General">General</option>
-                </select>
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Message</label>
-                <textarea name="message" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
-            </div>
-            <button type="submit" class="bg-primary-green text-white px-4 py-2 rounded">Submit Request</button>
-        </form>
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block title %}Support - KUPPET Siaya Branch{% endblock %}
+{% block dashboard_title %}Support{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / Support{% endblock %}
+
+{% block dashboard_content %}
+<section class="support-card mx-auto max-w-[640px]">
+    <div class="readonly-info mb-6">
+        <p><strong>Name:</strong> {{ user.get_full_name|default:user.tsc_number }}</p>
+        <p><strong>TSC Number:</strong> {{ user.tsc_number }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
     </div>
-</div>
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div class="field">
+            <label for="subject">Subject</label>
+            <select id="subject" name="subject" required class="select-input">
+                <option value="BBF Query">BBF Query</option>
+                <option value="Membership Query">Membership Query</option>
+                <option value="Financial Query">Financial Query</option>
+                <option value="General">General</option>
+            </select>
+        </div>
+        <div class="field">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" required class="textarea-input"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary w-full">Submit Request</button>
+    </form>
+</section>
 {% endblock %}

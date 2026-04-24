@@ -1,23 +1,27 @@
 {% extends 'base.html' %}
-{% load static %}
+
 {% block title %}{{ post.title }} - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <article class="max-w-4xl mx-auto">
-        {% if post.featured_image %}
-        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-64 md:h-96 object-cover rounded-lg mb-6">
-        {% endif %}
-        <h1 class="text-4xl font-bold text-primary-green mb-4">{{ post.title }}</h1>
-        <p class="text-secondary-yellow text-lg mb-6">{{ post.published_date|date:"F j, Y" }}</p>
-        <div class="prose prose-lg max-w-none">
-            {{ post.story|linebreaks }}
-        </div>
+<article class="article-shell">
+    <a href="{% url 'news_archive' %}" class="article-back">&larr; Back to News</a>
+
+    {% if post.featured_image %}
+        <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="article-hero">
+    {% endif %}
+
+    {% if post.category %}
+        <span class="badge">{{ post.category }}</span>
+    {% endif %}
+
+    <h1 class="article-title">{{ post.title }}</h1>
+    <p class="article-meta">{{ post.published_date|date:"F j, Y" }}</p>
+
+    <div class="prose-content">
         {% if post.secondary_image %}
-        <img src="{{ post.secondary_image.url }}" alt="Secondary image" class="w-full md:w-1/2 float-right ml-4 mb-4 rounded">
+            <img src="{{ post.secondary_image.url }}" alt="{{ post.title }}" class="article-secondary-image">
         {% endif %}
-    </article>
-    <div class="max-w-4xl mx-auto mt-8">
-        <a href="{% url 'news_archive' %}" class="text-primary-green hover:text-secondary-yellow">&larr; Back to News</a>
+        {{ post.story|linebreaks }}
     </div>
-</div>
+</article>
 {% endblock %}

@@ -1,21 +1,30 @@
 {% extends 'base.html' %}
+
 {% block title %}Login - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold text-primary-green mb-6">Member Login</h1>
-        <form method="post">
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1 class="auth-heading">Member Login</h1>
+        <p class="auth-subheading">Enter your registered details to receive a secure one-time passcode.</p>
+
+        <form method="post" class="space-y-5">
             {% csrf_token %}
-            <div class="mb-4">
-                <label for="tsc_number" class="block text-sm font-medium text-gray-700">TSC Number</label>
-                <input type="text" id="tsc_number" name="tsc_number" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+            <div class="field">
+                <label for="tsc_number">TSC Number</label>
+                <input type="text" id="tsc_number" name="tsc_number" required class="text-input">
             </div>
-            <div class="mb-4">
-                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+            <div class="field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required class="text-input">
             </div>
-            <button type="submit" class="w-full bg-primary-green text-white py-2 px-4 rounded-md hover:bg-secondary-yellow hover:text-primary-green">Send OTP</button>
+            <button type="submit" class="btn btn-primary w-full">Send OTP</button>
         </form>
+
+        <div class="auth-links">
+            <a href="{% url 'register' %}" class="text-link">Create an account</a>
+            <a href="{% url 'contact' %}" class="text-link">Need help?</a>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}

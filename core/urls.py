@@ -12,6 +12,7 @@ urlpatterns = [
     path('projects/bus/', views.projects_bus, name='projects_bus'),
     path('projects/kuppet-center/', views.projects_center, name='projects_center'),
     path('gallery/', views.gallery, name='gallery'),
+    path('gallery/<slug:slug>/', views.gallery_album, name='gallery_album'),
     path('contact/', views.contact, name='contact'),
     path('news/<slug:slug>/', views.news_detail, name='news_detail'),
     path('news/', views.news_archive, name='news_archive'),

@@ -1,10 +1,33 @@
 {% extends 'base.html' %}
+
 {% block title %}KUPPET Center - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">KUPPET Center</h1>
-    <div class="prose max-w-none">
-        <p>Our center facilities include...</p>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Project Spotlight</span>
+            <h1 class="section-heading__title">KUPPET Center</h1>
+        </div>
+
+        <div class="content-grid">
+            <div class="content-panel">
+                <p class="lead-text">The KUPPET Center project reflects the branch’s long-term investment in physical infrastructure that can support services, meetings, and institutional growth.</p>
+                <p>As the branch strengthens its operations, the center remains an important part of creating a stable and recognisable home for programme coordination and member-facing activity.</p>
+                <h3>Project objectives</h3>
+                <ul>
+                    <li>Provide space for branch coordination and organised service delivery.</li>
+                    <li>Support official meetings, training, and member engagement activities.</li>
+                    <li>Build a durable institutional asset for KUPPET Siaya Branch.</li>
+                </ul>
+            </div>
+
+            <aside class="cta-panel">
+                <h3>Project enquiries</h3>
+                <p class="mb-5">Reach the branch for the latest information on the center, development priorities, and related updates.</p>
+                <a href="{% url 'contact' %}" class="btn btn-primary">Get In Touch</a>
+            </aside>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}

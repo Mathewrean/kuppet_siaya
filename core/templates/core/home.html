@@ -1,65 +1,156 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}Home - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <!-- Hero Slider -->
-    <div id="hero-slider" class="relative w-full h-64 md:h-96 overflow-hidden rounded-lg mb-8">
-        {% for album in albums %}
-        <div class="slide absolute inset-0 {% if forloop.first %}active{% endif %}">
-            {% if album.cover_image %}
-            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}" class="w-full h-full object-cover">
-            {% else %}
-            <div class="w-full h-full bg-gray-300 flex items-center justify-center">No Image</div>
-            {% endif %}
-            <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <h2 class="text-2xl md:text-4xl font-bold">{{ album.title }}</h2>
-                    <a href="/gallery/" class="mt-4 inline-block bg-secondary-yellow text-primary-green px-6 py-2 rounded">View Gallery</a>
+<section class="section-shell section-shell--tight">
+    <div class="page-shell">
+        <div class="hero-slider surface-card" id="hero-slider">
+            {% for album in albums %}
+                <div class="hero-slide {% if forloop.first %}is-active{% endif %}" data-slide>
+                    <a href="{% if album.slug %}{% url 'gallery_album' album.slug %}{% else %}{% url 'gallery' %}{% endif %}" aria-label="Open {{ album.title }} album">
+                        {% if album.cover_image %}
+                            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
+                        {% elif album.images.first %}
+                            <img src="{{ album.images.first.image.url }}" alt="{{ album.title }}">
+                        {% else %}
+                            <div class="hero-slide__placeholder">{{ album.title }}</div>
+                        {% endif %}
+                    </a>
                 </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+            {% empty %}
+                <div class="hero-slide is-active">
+                    <a href="{% url 'gallery' %}" aria-label="Open gallery">
+                        <div class="hero-slide__placeholder">KUPPET Siaya Gallery</div>
+                    </a>
+                </div>
+            {% endfor %}
 
-    <!-- News Grid -->
-    <h2 class="text-3xl font-bold text-primary-green mb-6">Latest News</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for post in news %}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col h-full">
-            {% if post.featured_image %}
-            <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+            {% if albums|length > 1 %}
+                <div class="hero-controls">
+                    <button type="button" class="hero-arrow" data-hero-prev aria-label="Previous slide">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
+                        </svg>
+                    </button>
+                    <button type="button" class="hero-arrow" data-hero-next aria-label="Next slide">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="hero-dots">
+                    {% for album in albums %}
+                        <button type="button" class="hero-dot {% if forloop.first %}is-active{% endif %}" data-hero-dot="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
+                    {% endfor %}
+                </div>
             {% endif %}
-            <div class="p-4 flex-grow">
-                {% if post.category %}
-                <span class="bg-secondary-yellow text-primary-green px-2 py-1 rounded text-sm">{{ post.category }}</span>
-                {% endif %}
-                <h3 class="text-xl font-bold mt-2">{{ post.title }}</h3>
-                <p class="text-gray-600 mt-2">{{ post.story|truncatewords:20 }}</p>
-            </div>
-            <div class="p-4 pt-0">
-                <a href="{% url 'news_detail' post.slug %}" class="text-primary-green hover:text-secondary-yellow">Read More</a>
-            </div>
         </div>
-        {% endfor %}
     </div>
-    <div class="text-center mt-8">
-        <a href="{% url 'news_archive' %}" class="bg-primary-green text-white px-6 py-2 rounded hover:bg-secondary-yellow hover:text-primary-green">View All News</a>
-    </div>
-</div>
+</section>
 
+<section class="section-shell bg-white">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Latest Updates</span>
+            <h2 class="section-heading__title">Latest News</h2>
+        </div>
+
+        {% if news %}
+            <div class="grid-news">
+                {% for post in news %}
+                    <article class="news-card">
+                        <a href="{% url 'news_detail' post.slug %}" class="news-card__media" aria-label="Read {{ post.title }}">
+                            {% if post.featured_image %}
+                                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
+                            {% else %}
+                                <div class="hero-slide__placeholder">KUPPET Siaya News</div>
+                            {% endif %}
+                        </a>
+                        <div class="news-card__body">
+                            {% if post.category %}
+                                <span class="badge">{{ post.category }}</span>
+                            {% endif %}
+                            <h3 class="news-card__title">{{ post.title }}</h3>
+                            <p class="news-card__excerpt">{{ post.story|striptags|truncatewords:26 }}</p>
+                            <div class="news-card__footer">
+                                <a href="{% url 'news_detail' post.slug %}" class="text-link">Read More</a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="mt-8 text-center">
+                <a href="{% url 'news_archive' %}" class="btn btn-primary">View All News</a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 8h10M7 12h6M5 4h14v16H5z"></path>
+                </svg>
+                <p>No news has been published yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.slide');
-    function showSlide(index) {
-        slides.forEach((slide, i) => {
-            slide.classList.toggle('active', i === index);
+    (function () {
+        const slider = document.getElementById('hero-slider');
+        if (!slider) return;
+
+        const slides = Array.from(slider.querySelectorAll('[data-slide]'));
+        const dots = Array.from(slider.querySelectorAll('[data-hero-dot]'));
+        const prev = slider.querySelector('[data-hero-prev]');
+        const next = slider.querySelector('[data-hero-next]');
+
+        if (slides.length <= 1) return;
+
+        let index = 0;
+        let timerId = null;
+
+        function render(nextIndex) {
+            index = (nextIndex + slides.length) % slides.length;
+            slides.forEach((slide, slideIndex) => {
+                slide.classList.toggle('is-active', slideIndex === index);
+            });
+            dots.forEach((dot, dotIndex) => {
+                dot.classList.toggle('is-active', dotIndex === index);
+            });
+        }
+
+        function start() {
+            timerId = window.setInterval(() => render(index + 1), 5000);
+        }
+
+        function restart() {
+            window.clearInterval(timerId);
+            start();
+        }
+
+        prev?.addEventListener('click', () => {
+            render(index - 1);
+            restart();
         });
-    }
-    function nextSlide() {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }
-    setInterval(nextSlide, 5000); // Change slide every 5 seconds
+
+        next?.addEventListener('click', () => {
+            render(index + 1);
+            restart();
+        });
+
+        dots.forEach((dot) => {
+            dot.addEventListener('click', () => {
+                render(Number(dot.dataset.heroDot));
+                restart();
+            });
+        });
+
+        start();
+    }());
 </script>
 {% endblock %}

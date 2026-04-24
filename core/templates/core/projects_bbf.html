@@ -1,11 +1,33 @@
 {% extends 'base.html' %}
+
 {% block title %}Building Better Future - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">Building Better Future (BBF)</h1>
-    <div class="prose max-w-none">
-        <p>The BBF is our welfare scheme...</p>
-        <a href="#" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded">Non-Members Can Also Pay</a>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Project Spotlight</span>
+            <h1 class="section-heading__title">Building Better Future (BBF)</h1>
+        </div>
+
+        <div class="content-grid">
+            <div class="content-panel">
+                <p class="lead-text">BBF is the branch welfare initiative that helps members access structured support through regular contributions and shared responsibility.</p>
+                <p>The programme is designed to strengthen member welfare by creating a dependable support mechanism around times of need. It helps the branch respond more effectively while reinforcing the value of collective contribution.</p>
+                <h3>Why BBF matters</h3>
+                <ul>
+                    <li>Creates a predictable welfare framework for members.</li>
+                    <li>Supports branch responsiveness through organised contributions.</li>
+                    <li>Encourages long-term participation in member-focused support systems.</li>
+                </ul>
+            </div>
+
+            <aside class="cta-panel">
+                <h3>Non-member contribution option</h3>
+                <p class="mb-5">Stakeholders who are not yet enrolled can still support the programme through the approved BBF payment pathway.</p>
+                <a href="{% url 'contact' %}" class="btn btn-accent">Non-Members Can Also Pay</a>
+            </aside>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}

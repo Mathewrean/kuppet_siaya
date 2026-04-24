@@ -1,44 +1,80 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'dashboard/base_dashboard.html' %}
+
 {% block title %}Dashboard - KUPPET Siaya Branch{% endblock %}
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">Welcome back, {{ user.get_full_name }}</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <!-- BBF Status -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">BBF Status</h2>
-            <span class="px-3 py-1 rounded {% if bbf_status == 'Good Standing' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">{{ bbf_status }}</span>
+{% block dashboard_title %}Member Dashboard{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="widget-grid">
+    <section class="dashboard-card welcome-card">
+        <p class="dashboard-card__eyebrow">Welcome back,</p>
+        <h2>{{ user.get_full_name|default:user.tsc_number }}</h2>
+        <p>Use your dashboard to review branch records, track contributions, and reach support quickly.</p>
+    </section>
+
+    <section class="dashboard-card">
+        <p class="dashboard-card__eyebrow">BBF Status</p>
+        <h2>{{ bbf_status }}</h2>
+        <span class="status-badge {% if bbf_status == 'Good Standing' %}status-badge--good{% elif bbf_status == 'Pending Arrears' %}status-badge--pending{% else %}status-badge--lapsed{% endif %}">{{ bbf_status }}</span>
+    </section>
+
+    <section class="dashboard-card">
+        <p class="dashboard-card__eyebrow">Membership</p>
+        <h2>Branch Member</h2>
+        <p class="text-sm text-[var(--gray-700)]">Active member since {{ user.approval_date|date:"M Y"|default:"approval" }}</p>
+    </section>
+
+    <section class="dashboard-card">
+        <p class="dashboard-card__eyebrow">Request Info</p>
+        <div class="mb-4 flex justify-center">
+            <svg class="h-8 w-8 text-[var(--green-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16v14H4z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7l8 6 8-6"></path>
+            </svg>
         </div>
-        
-        <!-- Membership Status -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">Membership Status</h2>
-            <p>Active Member Since {{ user.approval_date|date:"M Y" }}</p>
+        <p class="mb-4 text-center text-[0.9rem] text-[var(--gray-700)]">Reach the branch for member support, clarification, or document-related questions.</p>
+        <div class="text-center">
+            <a href="{% url 'support' %}" class="btn btn-accent">Request Info</a>
         </div>
-        
-        <!-- Financial Statements -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">Financial Statements</h2>
-            <a href="{% url 'financials' %}" class="text-primary-green hover:text-secondary-yellow">View Statements</a>
+    </section>
+
+    <section class="dashboard-card">
+        <p class="dashboard-card__eyebrow">Financial Statements</p>
+        <div class="statement-list">
+            {% for statement in financial_statements %}
+                <div class="statement-row">
+                    <div class="statement-row__meta">
+                        <p class="statement-row__title">{{ statement.fiscal_year }}</p>
+                        <p class="statement-row__detail">{{ statement.title }}</p>
+                    </div>
+                    <a href="{{ statement.file.url }}" class="text-link">PDF</a>
+                </div>
+            {% empty %}
+                <p class="text-sm text-[var(--gray-500)]">No financial statements available yet.</p>
+            {% endfor %}
         </div>
-        
-        <!-- Request Info -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h2 class="text-xl font-bold mb-4">Support</h2>
-            <a href="{% url 'support' %}" class="bg-primary-green text-white px-4 py-2 rounded">Request Info</a>
+    </section>
+
+    <section class="dashboard-card">
+        <p class="dashboard-card__eyebrow">Quick Links</p>
+        <div class="quick-link-list">
+            <a href="{% url 'profile' %}">
+                <span>Update Profile</span>
+                <span>&rsaquo;</span>
+            </a>
+            <a href="{% url 'bbf_status' %}">
+                <span>Full BBF History</span>
+                <span>&rsaquo;</span>
+            </a>
+            <a href="{% url 'financials' %}">
+                <span>Financial Statements</span>
+                <span>&rsaquo;</span>
+            </a>
+            <a href="{% url 'support' %}">
+                <span>Contact Support</span>
+                <span>&rsaquo;</span>
+            </a>
         </div>
-    </div>
-    
-    <!-- Quick Links -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-bold mb-4">Quick Links</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <a href="{% url 'profile' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Update Profile</a>
-            <a href="{% url 'bbf_status' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Full BBF History</a>
-            <a href="{% url 'support' %}" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded text-center">Contact Support</a>
-        </div>
-    </div>
+    </section>
 </div>
 {% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ album.title }} - Gallery - KUPPET Siaya Branch{% endblock %}
+
+{% block content %}
+<section class="section-shell">
+    <div class="page-shell">
+        <a href="{% url 'gallery' %}" class="article-back">&larr; Back to Gallery</a>
+
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Album Detail</span>
+            <h1 class="section-heading__title">{{ album.title }}</h1>
+        </div>
+
+        {% if album.description %}
+            <p class="mb-8 max-w-3xl text-base text-[var(--gray-700)]">{{ album.description }}</p>
+        {% endif %}
+
+        {% if album.images.all %}
+            <div class="gallery-detail-grid" id="gallery-grid">
+                {% for image in album.images.all %}
+                    <button type="button" class="gallery-tile border-0 bg-transparent p-0" data-lightbox-index="{{ forloop.counter0 }}">
+                        <img src="{{ image.image.url }}" alt="{{ image.caption|default:album.title }}">
+                        <span class="gallery-tile__caption">{{ image.caption|default:album.title }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16v12H4z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10l3 3 2-2 3 3"></path>
+                </svg>
+                <p>This album does not have published images yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+{% if album.images.all %}
+    <div class="lightbox" id="gallery-lightbox" aria-hidden="true">
+        <button type="button" class="lightbox__close" data-lightbox-close aria-label="Close image">&times;</button>
+        <button type="button" class="lightbox__control lightbox__control--prev" data-lightbox-prev aria-label="Previous image">&#10094;</button>
+        <img src="" alt="" class="lightbox__image" id="lightbox-image">
+        <button type="button" class="lightbox__control lightbox__control--next" data-lightbox-next aria-label="Next image">&#10095;</button>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if album.images.all %}
+<script>
+    (function () {
+        const lightbox = document.getElementById('gallery-lightbox');
+        const imageElement = document.getElementById('lightbox-image');
+        const tiles = Array.from(document.querySelectorAll('[data-lightbox-index]'));
+        const images = tiles.map((tile) => {
+            const image = tile.querySelector('img');
+            return {
+                src: image.getAttribute('src'),
+                alt: image.getAttribute('alt') || '{{ album.title|escapejs }}'
+            };
+        });
+        let currentIndex = 0;
+
+        if (!lightbox || !imageElement || !images.length) return;
+
+        function render(index) {
+            currentIndex = (index + images.length) % images.length;
+            imageElement.src = images[currentIndex].src;
+            imageElement.alt = images[currentIndex].alt;
+            lightbox.classList.add('is-open');
+            lightbox.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('is-open');
+            lightbox.setAttribute('aria-hidden', 'true');
+        }
+
+        tiles.forEach((tile) => {
+            tile.addEventListener('click', () => render(Number(tile.dataset.lightboxIndex)));
+        });
+
+        document.querySelector('[data-lightbox-close]')?.addEventListener('click', closeLightbox);
+        document.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => render(currentIndex - 1));
+        document.querySelector('[data-lightbox-next]')?.addEventListener('click', () => render(currentIndex + 1));
+
+        lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) closeLightbox();
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (!lightbox.classList.contains('is-open')) return;
+            if (event.key === 'Escape') closeLightbox();
+            if (event.key === 'ArrowLeft') render(currentIndex - 1);
+            if (event.key === 'ArrowRight') render(currentIndex + 1);
+        });
+    }());
+</script>
+{% endif %}
+{% endblock %}

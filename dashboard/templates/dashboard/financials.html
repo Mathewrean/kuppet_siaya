@@ -1,18 +1,36 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'dashboard/base_dashboard.html' %}
+
 {% block title %}Financial Statements - KUPPET Siaya Branch{% endblock %}
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">Financial Statements</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {% for statement in financial_statements %}
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold">{{ statement.fiscal_year }}</h3>
-            <p class="text-gray-600 mb-4">{{ statement.description }}</p>
-            <a href="{{ statement.document.url }}" class="bg-primary-green text-white px-4 py-2 rounded">Download PDF</a>
-        </div>
-        {% endfor %}
-    </div>
+{% block dashboard_title %}Financial Statements{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / Financial Statements{% endblock %}
+
+{% block dashboard_content %}
+<div class="tabs">
+    <a href="{% url 'financials' %}" class="tab-link {% if not selected_year %}is-active{% endif %}">All Years</a>
+    {% for year in years %}
+        <a href="{% url 'financials' %}?year={{ year|urlencode }}" class="tab-link {% if selected_year == year %}is-active{% endif %}">{{ year }}</a>
+    {% endfor %}
 </div>
+
+<section class="dashboard-card">
+    {% if financial_statements %}
+        {% for statement in financial_statements %}
+            <div class="statement-row">
+                <div class="statement-row__meta">
+                    <p class="statement-row__title">{{ statement.title }}</p>
+                    <p class="statement-row__detail">{{ statement.fiscal_year }} <span class="mx-2">•</span> PDF document</p>
+                </div>
+                <a href="{{ statement.file.url }}" class="text-link">Download PDF</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state border-0 p-0 shadow-none">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h7l5 5v13H7z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3v5h5"></path>
+            </svg>
+            <p>No statements are available for this filter.</p>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}

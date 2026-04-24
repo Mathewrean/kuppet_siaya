@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body_class %}dashboard-body{% endblock %}
+
+{% block site_shell %}
+<div class="dashboard-shell">
+    <aside class="dashboard-sidebar" id="dashboard-sidebar">
+        <div class="dashboard-sidebar__logo">
+            <a href="{% url 'dashboard' %}">
+                <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Branch logo">
+            </a>
+        </div>
+
+        <nav class="dashboard-nav" aria-label="Dashboard navigation">
+            <a href="{% url 'dashboard' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 12l8-8 8 8"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 10v10h12V10"></path>
+                </svg>
+                <span class="dashboard-nav-label">Dashboard</span>
+            </a>
+            <a href="{% url 'bbf_status' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'bbf_status' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h10"></path>
+                </svg>
+                <span class="dashboard-nav-label">BBF Status</span>
+            </a>
+            <a href="{% url 'financials' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'financials' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h7l5 5v13H7z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3v5h5"></path>
+                </svg>
+                <span class="dashboard-nav-label">Financials</span>
+            </a>
+            <a href="{% url 'profile' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'profile' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20a8 8 0 0116 0"></path>
+                </svg>
+                <span class="dashboard-nav-label">Profile</span>
+            </a>
+            <a href="{% url 'support' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'support' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16v11H7l-3 3V5z"></path>
+                </svg>
+                <span class="dashboard-nav-label">Support</span>
+            </a>
+        </nav>
+
+        <div class="dashboard-sidebar__footer">
+            <div class="mb-3 flex items-center gap-3">
+                <span class="avatar-badge">{{ user.first_name|default:user.tsc_number|slice:":1" }}{{ user.last_name|slice:":1" }}</span>
+                <div class="dashboard-sidebar__footer-text">
+                    <p class="text-sm font-semibold">{{ user.get_full_name|default:user.tsc_number }}</p>
+                    <p class="text-xs text-white/70">Member portal</p>
+                </div>
+            </div>
+            <a href="{% url 'logout' %}" class="text-sm text-white/80 hover:text-white hover:underline">Logout</a>
+        </div>
+    </aside>
+
+    <main class="dashboard-main">
+        <div class="dashboard-main__inner">
+            <div class="dashboard-heading-bar">
+                <div class="flex items-start gap-4">
+                    <button type="button" class="dashboard-mobile-toggle" data-dashboard-open aria-label="Open dashboard menu">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"></path>
+                        </svg>
+                    </button>
+                    <div>
+                        <h1>{% block dashboard_title %}Member Dashboard{% endblock %}</h1>
+                        <p class="dashboard-breadcrumb">{% block dashboard_breadcrumb %}Member Portal{% endblock %}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const sidebar = document.getElementById('dashboard-sidebar');
+        const openButton = document.querySelector('[data-dashboard-open]');
+
+        if (!sidebar || !openButton) return;
+
+        openButton.addEventListener('click', () => {
+            sidebar.classList.toggle('is-open');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (window.innerWidth >= 768) return;
+            if (!sidebar.classList.contains('is-open')) return;
+            if (sidebar.contains(event.target) || openButton.contains(event.target)) return;
+            sidebar.classList.remove('is-open');
+        });
+    }());
+</script>
+{% endblock %}

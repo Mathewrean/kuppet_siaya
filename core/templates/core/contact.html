@@ -1,81 +1,121 @@
 {% extends 'base.html' %}
-{% load static %}
+
 {% block title %}Contact Us - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Contact Info -->
-        <div>
-            <h1 class="text-3xl font-bold text-primary-green mb-6">Contact Us</h1>
-            <div class="bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-4">Get in Touch</h2>
-                <p class="mb-2"><strong>Address:</strong> KUPPET Siaya Branch, Siaya County, Kenya</p>
-                <p class="mb-2"><strong>Phone:</strong> +254 XXX XXX XXX</p>
-                <p class="mb-2"><strong>Email:</strong> info@kuppetsiaya.or.ke</p>
-                <p class="mb-4"><strong>Office Hours:</strong> Monday - Friday, 8:00 AM - 5:00 PM</p>
-                <p>If you are a member, please log in to your dashboard for personalized support.</p>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="contact-layout">
+            <div class="info-panel">
+                <h2>Get in Touch</h2>
+                <ul class="info-list">
+                    <li>
+                        <svg class="icon-inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10z"></path>
+                            <circle cx="12" cy="11" r="2.5" stroke-width="1.8"></circle>
+                        </svg>
+                        <div>
+                            <strong class="block text-[var(--dark)]">Address</strong>
+                            <span>KUPPET Siaya Branch, Siaya County, Kenya</span>
+                        </div>
+                    </li>
+                    <li>
+                        <svg class="icon-inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 4h4l2 5-2.5 1.5a14 14 0 006 6L17 14l5 2v4a2 2 0 01-2.2 2A18 18 0 012 6.2 2 2 0 014 4z"></path>
+                        </svg>
+                        <div>
+                            <strong class="block text-[var(--dark)]">Phone</strong>
+                            <span>+254 XXX XXX XXX</span>
+                        </div>
+                    </li>
+                    <li>
+                        <svg class="icon-inline" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7l8 6 8-6"></path>
+                        </svg>
+                        <div>
+                            <strong class="block text-[var(--dark)]">Email</strong>
+                            <span>info@kuppetsiaya.or.ke</span>
+                        </div>
+                    </li>
+                </ul>
+                <p class="mt-6">If you are a member, you can also use the support area in your dashboard for personalised assistance.</p>
             </div>
-        </div>
-        
-        <!-- Contact Form -->
-        <div>
-            <form method="post" class="bg-white p-6 rounded-lg shadow-md">
+
+            <form method="post" class="form-panel">
                 {% csrf_token %}
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" id="first_name" name="first_name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                <h2>Contact Form</h2>
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required class="text-input">
                     </div>
-                    <div>
-                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
+                    <div class="field">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" required class="text-input">
+                    </div>
+                    <div class="field field--full">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required class="text-input">
+                    </div>
+                    <div class="field">
+                        <label for="tsc_number">TSC Number</label>
+                        <input type="text" id="tsc_number" name="tsc_number" class="text-input">
+                    </div>
+                    <div class="field">
+                        <label for="phone_number">Phone Number</label>
+                        <input type="text" id="phone_number" name="phone_number" class="text-input">
+                    </div>
+                    <div class="field field--full">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" required class="text-input">
+                    </div>
+                    <div class="field field--full">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" required class="textarea-input"></textarea>
+                    </div>
+                    <div class="field field--full">
+                        <label class="checkbox-field" for="consent">
+                            <input type="checkbox" id="consent" name="consent" required>
+                            <span>I consent to the processing of my personal data for the purpose of handling this inquiry.</span>
+                        </label>
+                    </div>
+                    <div class="field field--full">
+                        <button type="submit" class="btn btn-primary w-full">Send Message</button>
                     </div>
                 </div>
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
-                </div>
-                <div class="mb-4">
-                    <label for="tsc_number" class="block text-sm font-medium text-gray-700">TSC Number (Optional)</label>
-                    <input type="text" id="tsc_number" name="tsc_number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
-                </div>
-                <div class="mb-4">
-                    <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="text" id="phone_number" name="phone_number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
-                </div>
-                <div class="mb-4">
-                    <label for="subject" class="block text-sm font-medium text-gray-700">Subject</label>
-                    <input type="text" id="subject" name="subject" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green">
-                </div>
-                <div class="mb-4">
-                    <label for="message" class="block text-sm font-medium text-gray-700">Message</label>
-                    <textarea id="message" name="message" rows="4" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-green focus:border-primary-green"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label class="flex items-center">
-                        <input type="checkbox" id="consent" name="consent" required class="h-4 w-4 text-primary-green focus:ring-primary-green border-gray-300 rounded">
-                        <span class="ml-2 text-sm text-gray-700">I consent to the processing of my personal data for the purpose of handling this inquiry.</span>
-                    </label>
-                </div>
-                <button type="submit" class="w-full bg-primary-green text-white py-2 px-4 rounded-md hover:bg-secondary-yellow hover:text-primary-green focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-green">Send Message</button>
             </form>
         </div>
     </div>
-</div>
+</section>
+{% endblock %}
 
+{% block extra_js %}
+{% if user.is_authenticated %}
 <script>
-    // Auto-fill for logged-in users
-    {% if user.is_authenticated %}
-    document.getElementById('first_name').value = '{{ user.first_name }}';
-    document.getElementById('last_name').value = '{{ user.last_name }}';
-    document.getElementById('email').value = '{{ user.email }}';
-    document.getElementById('tsc_number').value = '{{ user.tsc_number }}';
-    document.getElementById('phone_number').value = '{{ user.phone_number }}';
-    // Make them read-only
-    document.getElementById('first_name').readOnly = true;
-    document.getElementById('last_name').readOnly = true;
-    document.getElementById('email').readOnly = true;
-    document.getElementById('tsc_number').readOnly = true;
-    {% endif %}
+    (function () {
+        const readonlyIds = ['first_name', 'last_name', 'email', 'tsc_number'];
+        const values = {
+            first_name: '{{ user.first_name|escapejs }}',
+            last_name: '{{ user.last_name|escapejs }}',
+            email: '{{ user.email|escapejs }}',
+            tsc_number: '{{ user.tsc_number|escapejs }}',
+            phone_number: '{{ user.phone_number|escapejs }}'
+        };
+
+        Object.entries(values).forEach(([key, value]) => {
+            const field = document.getElementById(key);
+            if (!field) return;
+            field.value = value;
+        });
+
+        readonlyIds.forEach((id) => {
+            const field = document.getElementById(id);
+            if (!field) return;
+            field.readOnly = true;
+            field.classList.add('is-readonly');
+        });
+    }());
 </script>
+{% endif %}
 {% endblock %}

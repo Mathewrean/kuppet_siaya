@@ -1,91 +1,233 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}KUPPET Siaya Branch{% endblock %}</title>
-    {% load static %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50 text-gray-900">
-    <header class="sticky top-0 bg-primary-green text-white z-50">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center">
-                <a href="/">
-                    <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Logo" class="h-10 md:h-14">
-                </a>
-            </div>
-            <nav class="hidden md:flex space-x-6">
-                <a href="/" class="hover:text-secondary-yellow">Home</a>
-                <a href="/about/" class="hover:text-secondary-yellow">About</a>
-                <a href="/projects/" class="hover:text-secondary-yellow">Projects</a>
-                <a href="/gallery/" class="hover:text-secondary-yellow">Gallery</a>
-                <a href="/contact/" class="hover:text-secondary-yellow">Contact</a>
+<body class="{% block body_class %}{% endblock %}">
+    {% block site_shell %}
+    <header class="site-header">
+        <div class="site-header__inner">
+            <a href="{% url 'home' %}" class="site-logo" aria-label="KUPPET Siaya home">
+                <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Branch logo">
+            </a>
+
+            <nav class="site-nav" aria-label="Primary navigation">
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">
+                    <a href="{% url 'home' %}" class="site-nav-link">Home</a>
+                </div>
+
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'about' or request.resolver_match.url_name == 'about_profile' or request.resolver_match.url_name == 'about_bec' or request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">
+                    <a href="{% url 'about' %}" class="site-nav-link">About</a>
+                    <div class="site-dropdown">
+                        <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Branch Profile</a>
+                        <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC</a>
+                        <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC</a>
+                    </div>
+                </div>
+
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'projects_bbf' or request.resolver_match.url_name == 'projects_bus' or request.resolver_match.url_name == 'projects_center' %}is-active{% endif %}">
+                    <a href="{% url 'projects' %}" class="site-nav-link">Projects</a>
+                    <div class="site-dropdown">
+                        <a href="{% url 'projects' %}" class="{% if request.resolver_match.url_name == 'projects' %}is-active{% endif %}">Overview</a>
+                        <a href="{% url 'projects_bbf' %}" class="{% if request.resolver_match.url_name == 'projects_bbf' %}is-active{% endif %}">BBF</a>
+                        <a href="{% url 'projects_bus' %}" class="{% if request.resolver_match.url_name == 'projects_bus' %}is-active{% endif %}">BUS</a>
+                        <a href="{% url 'projects_center' %}" class="{% if request.resolver_match.url_name == 'projects_center' %}is-active{% endif %}">KUPPET Center</a>
+                    </div>
+                </div>
+
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">
+                    <a href="{% url 'news_archive' %}" class="site-nav-link">News</a>
+                </div>
+
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">
+                    <a href="{% url 'gallery' %}" class="site-nav-link">Gallery</a>
+                </div>
+
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">
+                    <a href="{% url 'contact' %}" class="site-nav-link">Contact</a>
+                </div>
             </nav>
-            <div class="flex items-center space-x-4">
+
+            <div class="site-header__actions">
                 {% if user.is_authenticated %}
-                    <span class="hidden md:inline">{{ user.get_full_name }}</span>
-                    <a href="/dashboard/" class="bg-secondary-yellow text-primary-green px-4 py-2 rounded font-bold">Dashboard</a>
+                    <span class="member-meta">{{ user.get_full_name|default:user.tsc_number }}</span>
+                    <a href="{% url 'dashboard' %}" class="btn btn-accent">Dashboard</a>
                 {% else %}
-                    <a href="/accounts/login/" class="border border-secondary-yellow text-secondary-yellow px-4 py-2 rounded hover:bg-secondary-yellow hover:text-primary-green">Member Login</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline">Member Login</a>
                 {% endif %}
-                <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+
+                <button type="button" class="mobile-menu-toggle" data-mobile-nav-open aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"></path>
                     </svg>
                 </button>
             </div>
         </div>
-        <nav id="mobile-menu" class="hidden md:hidden bg-primary-green text-white px-4 py-4">
-            <a href="/" class="block py-2 hover:text-secondary-yellow">Home</a>
-            <a href="/about/" class="block py-2 hover:text-secondary-yellow">About</a>
-            <a href="/projects/" class="block py-2 hover:text-secondary-yellow">Projects</a>
-            <a href="/gallery/" class="block py-2 hover:text-secondary-yellow">Gallery</a>
-            <a href="/contact/" class="block py-2 hover:text-secondary-yellow">Contact</a>
-            {% if user.is_authenticated %}
-                <a href="/dashboard/" class="block py-2 bg-secondary-yellow text-primary-green rounded mt-2 text-center">Dashboard</a>
-            {% else %}
-                <a href="/accounts/login/" class="block py-2 border border-secondary-yellow text-secondary-yellow rounded mt-2 text-center">Member Login</a>
-            {% endif %}
-        </nav>
     </header>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
-    <footer class="bg-primary-green text-white py-8 mt-8">
-        <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
-                    <p>KUPPET Siaya Branch</p>
-                    <p>Siaya County, Kenya</p>
-                    <p>Phone: +254 XXX XXX XXX</p>
-                    <p>Email: info@kuppetsiaya.or.ke</p>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/" class="hover:text-secondary-yellow">Home</a></li>
-                        <li><a href="/about/" class="hover:text-secondary-yellow">About</a></li>
-                        <li><a href="/projects/" class="hover:text-secondary-yellow">Projects</a></li>
-                        <li><a href="/gallery/" class="hover:text-secondary-yellow">Gallery</a></li>
-                        <li><a href="/contact/" class="hover:text-secondary-yellow">Contact</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Follow Us</h3>
-                    <p>Stay connected with our latest updates.</p>
+
+    <div class="mobile-drawer" id="mobile-drawer" aria-hidden="true">
+        <div class="mobile-drawer__backdrop" data-mobile-nav-close></div>
+        <div class="mobile-drawer__panel">
+            <div class="mobile-drawer__header">
+                <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Branch logo" class="h-10 w-auto">
+                <button type="button" class="mobile-drawer__close" data-mobile-nav-close aria-label="Close menu">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 6l12 12M18 6L6 18"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <a href="{% url 'home' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'home' %}is-active{% endif %}">Home</a>
+
+            <div class="mobile-nav-group">
+                <button type="button" class="mobile-nav-toggle" data-mobile-group-toggle>
+                    <span>About</span>
+                    <span>+</span>
+                </button>
+                <div class="mobile-subnav">
+                    <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">Overview</a>
+                    <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Branch Profile</a>
+                    <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC</a>
+                    <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC</a>
                 </div>
             </div>
-            <div class="text-center mt-8 border-t border-white pt-4">
-                <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
+
+            <div class="mobile-nav-group">
+                <button type="button" class="mobile-nav-toggle" data-mobile-group-toggle>
+                    <span>Projects</span>
+                    <span>+</span>
+                </button>
+                <div class="mobile-subnav">
+                    <a href="{% url 'projects' %}" class="{% if request.resolver_match.url_name == 'projects' %}is-active{% endif %}">Overview</a>
+                    <a href="{% url 'projects_bbf' %}" class="{% if request.resolver_match.url_name == 'projects_bbf' %}is-active{% endif %}">BBF</a>
+                    <a href="{% url 'projects_bus' %}" class="{% if request.resolver_match.url_name == 'projects_bus' %}is-active{% endif %}">BUS</a>
+                    <a href="{% url 'projects_center' %}" class="{% if request.resolver_match.url_name == 'projects_center' %}is-active{% endif %}">KUPPET Center</a>
+                </div>
+            </div>
+
+            <a href="{% url 'news_archive' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">News</a>
+            <a href="{% url 'gallery' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">Gallery</a>
+            <a href="{% url 'contact' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">Contact</a>
+
+            <div class="px-6 py-5">
+                {% if user.is_authenticated %}
+                    <p class="mb-3 text-sm text-white/80">{{ user.get_full_name|default:user.tsc_number }}</p>
+                    <a href="{% url 'dashboard' %}" class="btn btn-accent w-full">Dashboard</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline w-full">Member Login</a>
+                {% endif %}
             </div>
         </div>
+    </div>
+
+    <main class="{% block main_class %}site-main{% endblock %}">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-12 bg-[var(--green-dark)] px-6 pb-6 pt-12 text-white">
+        <div class="mx-auto grid max-w-[1200px] gap-10 md:grid-cols-3">
+            <div class="space-y-4">
+                <img src="{% static 'images/kuppet.png' %}" alt="KUPPET Siaya Branch logo" class="h-12 w-auto">
+                <p class="text-sm text-white/70">KUPPET Siaya Branch digital portal for trusted communication, member services, and branch programmes.</p>
+            </div>
+            <div>
+                <h3 class="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-[var(--yellow-primary)]">Quick Links</h3>
+                <div class="space-y-3 text-sm text-white/80">
+                    <a href="{% url 'about' %}" class="block hover:text-white hover:underline">About</a>
+                    <a href="{% url 'projects' %}" class="block hover:text-white hover:underline">Projects</a>
+                    <a href="{% url 'news_archive' %}" class="block hover:text-white hover:underline">News</a>
+                    <a href="{% url 'gallery' %}" class="block hover:text-white hover:underline">Gallery</a>
+                    <a href="{% url 'contact' %}" class="block hover:text-white hover:underline">Contact</a>
+                </div>
+            </div>
+            <div>
+                <h3 class="mb-4 text-xs font-bold uppercase tracking-[0.08em] text-[var(--yellow-primary)]">Contact</h3>
+                <div class="space-y-3 text-sm text-white/80">
+                    <p class="flex items-start gap-3">
+                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 21s-6-4.35-6-10a6 6 0 1112 0c0 5.65-6 10-6 10z"></path>
+                            <circle cx="12" cy="11" r="2.5" stroke-width="1.8"></circle>
+                        </svg>
+                        <span>Siaya County, Kenya</span>
+                    </p>
+                    <p class="flex items-start gap-3">
+                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7l8 6 8-6"></path>
+                        </svg>
+                        <span>info@kuppetsiaya.or.ke</span>
+                    </p>
+                    <p class="flex items-start gap-3">
+                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 4h4l2 5-2.5 1.5a14 14 0 006 6L17 14l5 2v4a2 2 0 01-2.2 2A18 18 0 012 6.2 2 2 0 014 4z"></path>
+                        </svg>
+                        <span>+254 XXX XXX XXX</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="mx-auto mt-8 max-w-[1200px] border-t border-white/10 pt-4 text-center text-[0.8rem] text-white/50">
+            <p>&copy; {% now "Y" %} KUPPET Siaya Branch. All rights reserved.</p>
+        </div>
     </footer>
+    {% endblock %}
+
+    {% if messages %}
+        <div class="toast-stack" aria-live="polite">
+            {% for message in messages %}
+                <div class="toast {% if 'success' in message.tags %}toast--success{% elif 'error' in message.tags %}toast--error{% else %}toast--warning{% endif %}" data-toast>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <script>
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        });
+        (function () {
+            const drawer = document.getElementById('mobile-drawer');
+            const openButton = document.querySelector('[data-mobile-nav-open]');
+            const closeButtons = document.querySelectorAll('[data-mobile-nav-close]');
+
+            function setDrawerState(open) {
+                if (!drawer || !openButton) return;
+                drawer.classList.toggle('is-open', open);
+                drawer.setAttribute('aria-hidden', open ? 'false' : 'true');
+                openButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+                document.body.classList.toggle('overflow-hidden', open);
+            }
+
+            if (openButton && drawer) {
+                openButton.addEventListener('click', () => setDrawerState(true));
+                closeButtons.forEach((button) => button.addEventListener('click', () => setDrawerState(false)));
+            }
+
+            document.querySelectorAll('[data-mobile-group-toggle]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const group = button.closest('.mobile-nav-group');
+                    if (!group) return;
+                    group.classList.toggle('is-open');
+                    const indicator = button.querySelector('span:last-child');
+                    if (indicator) {
+                        indicator.textContent = group.classList.contains('is-open') ? '−' : '+';
+                    }
+                });
+            });
+
+            document.querySelectorAll('[data-toast]').forEach((toast) => {
+                window.setTimeout(() => {
+                    toast.remove();
+                }, 4000);
+            });
+        }());
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

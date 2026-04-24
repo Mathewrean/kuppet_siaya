@@ -1,49 +1,124 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'dashboard/base_dashboard.html' %}
+
 {% block title %}Profile - KUPPET Siaya Branch{% endblock %}
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 class="text-3xl font-bold text-primary-green mb-6">My Profile</h1>
-        
-        <form method="post">
-            {% csrf_token %}
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">First Name</label>
-                    <input type="text" value="{{ user.first_name }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+{% block dashboard_title %}My Profile{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / Profile{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <section class="dashboard-card profile-card" id="profile-card">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <p class="dashboard-card__eyebrow">Member Record</p>
+                <h2 class="mb-0">Profile Information</h2>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" class="btn btn-outline-green" id="profile-edit-toggle">Edit Profile</button>
+            </div>
+        </div>
+
+        <div class="profile-view">
+            <div class="profile-view-grid">
+                <div class="profile-item">
+                    <p class="profile-item__key">First Name</p>
+                    <p class="profile-item__value">{{ user.first_name }}</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Last Name</label>
-                    <input type="text" value="{{ user.last_name }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
+                <div class="profile-item">
+                    <p class="profile-item__key">Last Name</p>
+                    <p class="profile-item__value">{{ user.last_name }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">TSC Number</p>
+                    <p class="profile-item__value">{{ user.tsc_number }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">Email</p>
+                    <p class="profile-item__value">{{ user.email }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">Phone Number</p>
+                    <p class="profile-item__value">{{ user.phone_number|default:"Not provided" }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">Sub-County</p>
+                    <p class="profile-item__value">{{ user.sub_county|default:"Not provided" }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">School</p>
+                    <p class="profile-item__value">{{ user.school|default:"Not provided" }}</p>
+                </div>
+                <div class="profile-item">
+                    <p class="profile-item__key">Approval Status</p>
+                    <p class="profile-item__value">{{ user.get_approval_status_display }}</p>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">TSC Number</label>
-                <input type="text" value="{{ user.tsc_number }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" name="email" value="{{ user.email }}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Phone Number</label>
-                <input type="text" name="phone_number" value="{{ user.phone_number }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Sub-County</label>
-                <input type="text" value="{{ user.sub_county }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">School</label>
-                <input type="text" value="{{ user.school }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
-            </div>
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Membership Status</label>
-                <input type="text" value="{{ user.get_approval_status_display }}" readonly class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100">
-            </div>
-            <button type="submit" class="bg-primary-green text-white px-4 py-2 rounded">Update Profile</button>
-        </form>
-    </div>
+        </div>
+
+        <div class="profile-edit">
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="field">
+                        <label>First Name</label>
+                        <input type="text" value="{{ user.first_name }}" readonly class="text-input is-readonly">
+                    </div>
+                    <div class="field">
+                        <label>Last Name</label>
+                        <input type="text" value="{{ user.last_name }}" readonly class="text-input is-readonly">
+                    </div>
+                    <div class="field">
+                        <label>TSC Number</label>
+                        <input type="text" value="{{ user.tsc_number }}" readonly class="text-input is-readonly">
+                    </div>
+                    <div class="field">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" value="{{ user.email }}" required class="text-input">
+                    </div>
+                    <div class="field">
+                        <label for="phone_number">Phone Number</label>
+                        <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" class="text-input">
+                    </div>
+                    <div class="field">
+                        <label>Sub-County</label>
+                        <input type="text" value="{{ user.sub_county }}" readonly class="text-input is-readonly">
+                    </div>
+                    <div class="field field--full">
+                        <label>School</label>
+                        <input type="text" value="{{ user.school }}" readonly class="text-input is-readonly">
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-4">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="text-link" id="profile-cancel">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section class="profile-transfer">
+        <h3>Transfer Requests</h3>
+        <p class="mb-4 text-[0.875rem] text-[var(--gray-700)]">If you need support regarding a change of station or branch transfer process, submit a request through the support channel for formal guidance.</p>
+        <a href="{% url 'support' %}" class="btn btn-outline-green">Request Transfer</a>
+    </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const profileCard = document.getElementById('profile-card');
+        const toggleButton = document.getElementById('profile-edit-toggle');
+        const cancelButton = document.getElementById('profile-cancel');
+
+        if (!profileCard || !toggleButton || !cancelButton) return;
+
+        toggleButton.addEventListener('click', () => {
+            profileCard.classList.add('is-editing');
+        });
+
+        cancelButton.addEventListener('click', () => {
+            profileCard.classList.remove('is-editing');
+        });
+    }());
+</script>
 {% endblock %}

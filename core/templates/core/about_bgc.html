@@ -1,21 +1,38 @@
 {% extends 'base.html' %}
-{% load static %}
+
 {% block title %}Branch Gender Committee - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">Branch Gender Committee (BGC)</h1>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {% for member in members %}
-        <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            {% if member.photo %}
-            <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="w-full h-64 object-cover">
-            {% endif %}
-            <div class="p-4">
-                <h3 class="text-xl font-bold">{{ member.name }}</h3>
-                <p class="text-primary-green">{{ member.title }}</p>
-            </div>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Leadership</span>
+            <h1 class="section-heading__title">Branch Gender Committee</h1>
         </div>
-        {% endfor %}
+
+        {% if members %}
+            <div class="committee-grid">
+                {% for member in members %}
+                    <article class="member-card">
+                        {% if member.photo %}
+                            <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="member-card__avatar">
+                        {% else %}
+                            <div class="member-card__placeholder">{{ member.name|slice:":1" }}</div>
+                        {% endif %}
+                        <h3 class="member-card__name">{{ member.name }}</h3>
+                        <p class="member-card__title">{{ member.title }}</p>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20a8 8 0 0116 0"></path>
+                </svg>
+                <p>BGC member profiles will appear here once they are published.</p>
+            </div>
+        {% endif %}
     </div>
-</div>
+</section>
 {% endblock %}

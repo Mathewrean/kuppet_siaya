@@ -1,5 +1,37 @@
 {% extends 'base.html' %}
+
+{% block title %}Projects - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<h1 class="text-3xl font-bold text-primary-green">Our Projects</h1>
-<p class="mt-4">Explore our various initiatives, including the BBF, BUS, and the KUPPET Center.</p>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Programmes</span>
+            <h1 class="section-heading__title">Branch Projects And Initiatives</h1>
+        </div>
+
+        <div class="content-grid">
+            <div class="content-panel">
+                <p class="lead-text">KUPPET Siaya Branch runs structured initiatives that respond to welfare, investment, and institutional support priorities for members.</p>
+                <p>These programmes strengthen the branch’s ability to serve teachers beyond routine administration. Each initiative is designed to meet a specific need, whether that is social welfare, enterprise development, or the expansion of branch facilities and service capacity.</p>
+                <h3>Current focus areas</h3>
+                <ul>
+                    <li>Building Better Future (BBF) for welfare support and member protection.</li>
+                    <li>Business Unit Society (BUS) for branch enterprise and sustainability initiatives.</li>
+                    <li>KUPPET Center development for infrastructure and service delivery.</li>
+                </ul>
+            </div>
+
+            <aside class="cta-panel">
+                <h3>Explore Project Pages</h3>
+                <p class="mb-4">Use the dedicated project sections to learn how each programme supports branch priorities and member needs.</p>
+                <div class="space-y-3">
+                    <a href="{% url 'projects_bbf' %}" class="btn btn-primary w-full">View BBF</a>
+                    <a href="{% url 'projects_bus' %}" class="btn btn-outline-green w-full">View BUS</a>
+                    <a href="{% url 'projects_center' %}" class="btn btn-outline-green w-full">View KUPPET Center</a>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
 {% endblock %}

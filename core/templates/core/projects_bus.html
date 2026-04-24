@@ -1,10 +1,33 @@
 {% extends 'base.html' %}
+
 {% block title %}Business Unit Society - KUPPET Siaya Branch{% endblock %}
+
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">Business Unit Society (BUS)</h1>
-    <div class="prose max-w-none">
-        <p>The BUS committee manages our business ventures...</p>
+<section class="section-shell">
+    <div class="page-shell">
+        <div class="section-heading">
+            <span class="section-heading__eyebrow">Project Spotlight</span>
+            <h1 class="section-heading__title">Business Unit Society (BUS)</h1>
+        </div>
+
+        <div class="content-grid">
+            <div class="content-panel">
+                <p class="lead-text">BUS provides the branch with a framework for enterprise-oriented initiatives that can strengthen institutional sustainability over time.</p>
+                <p>The programme helps the branch organise business-related opportunities in a structured way, supporting long-term planning while remaining aligned with member interests and branch priorities.</p>
+                <h3>Core value to the branch</h3>
+                <ul>
+                    <li>Supports strategic financial thinking beyond routine administration.</li>
+                    <li>Creates room for carefully managed income-generating activity.</li>
+                    <li>Improves institutional resilience through organised business oversight.</li>
+                </ul>
+            </div>
+
+            <aside class="cta-panel">
+                <h3>Need more information?</h3>
+                <p class="mb-5">The branch can provide official guidance on BUS priorities, governance, and approved participation pathways.</p>
+                <a href="{% url 'contact' %}" class="btn btn-primary">Contact The Branch</a>
+            </aside>
+        </div>
     </div>
-</div>
+</section>
 {% endblock %}

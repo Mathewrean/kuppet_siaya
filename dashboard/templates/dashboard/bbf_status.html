@@ -1,38 +1,60 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'dashboard/base_dashboard.html' %}
+
 {% block title %}BBF Status - KUPPET Siaya Branch{% endblock %}
-{% block content %}
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary-green mb-6">BBF Contribution History</h1>
-    
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 class="text-xl font-bold mb-4">Eligibility Calculator</h2>
-        <p>Based on your contributions, you are eligible for member + nuclear family coverage.</p>
-    </div>
-    
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-bold mb-4">Contribution History</h2>
-        <table class="w-full">
+{% block dashboard_title %}BBF Detail{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / BBF Status{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <section class="eligibility-panel">
+        <h2>Eligibility Summary</h2>
+        <ul class="eligibility-list">
+            <li>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path>
+                </svg>
+                <span>Current BBF standing: {{ bbf_status }}.</span>
+            </li>
+            <li>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path>
+                </svg>
+                <span>Contribution history below reflects your recorded BBF payments.</span>
+            </li>
+        </ul>
+    </section>
+
+    <div class="table-shell">
+        <table class="data-table">
             <thead>
-                <tr class="border-b">
-                    <th class="text-left py-2">Date</th>
-                    <th class="text-left py-2">Amount</th>
-                    <th class="text-left py-2">Reference</th>
-                    <th class="text-left py-2">Status</th>
+                <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Reference</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
                 {% for contribution in contributions %}
-                <tr class="border-b">
-                    <td class="py-2">{{ contribution.contribution_date|date:"M d, Y" }}</td>
-                    <td class="py-2">{{ contribution.amount }}</td>
-                    <td class="py-2">{{ contribution.reference }}</td>
-                    <td class="py-2">{{ contribution.status }}</td>
-                </tr>
+                    <tr>
+                        <td>{{ contribution.contribution_date|date:"M d, Y" }}</td>
+                        <td>KES {{ contribution.amount }}</td>
+                        <td>{{ contribution.reference }}</td>
+                        <td>
+                            <span class="status-badge {% if contribution.status|lower == 'paid' %}status-badge--good{% else %}status-badge--pending{% endif %}">
+                                {{ contribution.status }}
+                            </span>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-[var(--gray-500)]">No BBF contributions found.</td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="#" class="mt-4 inline-block bg-primary-green text-white px-4 py-2 rounded">Download BBF Statement</a>
     </div>
+
+    <a href="{% url 'support' %}" class="btn btn-primary">Request BBF Statement</a>
 </div>
 {% endblock %}
