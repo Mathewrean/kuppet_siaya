@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:css": "npx tailwindcss -i ./static_src/input.css -o ./static/css/styles.css",
+    "watch:css": "npx tailwindcss -i ./static_src/input.css -o ./static/css/styles.css --watch"
   },
   "keywords": [],
   "author": "",

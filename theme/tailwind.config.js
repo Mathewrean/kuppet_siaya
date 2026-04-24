@@ -2,7 +2,7 @@
 module.exports = {
   content: [
     "./templates/**/*.html",
-    "./static_src/src/**/*.{html,js,css}",
+    "./static_src/**/*.{html,js,css}",
     "../core/templates/**/*.html",
     "../accounts/templates/**/*.html",
     "../dashboard/templates/**/*.html",

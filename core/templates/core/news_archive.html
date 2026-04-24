@@ -61,6 +61,25 @@
                             </article>
                         {% endfor %}
                     </div>
+                {% elif placeholder_news and not category and not search %}
+                    <div class="news-list-grid">
+                        {% for post in placeholder_news %}
+                            <article class="news-card">
+                                <div class="news-card__media">
+                                    <div class="hero-slide__placeholder">Preview Story</div>
+                                </div>
+                                <div class="news-card__body">
+                                    <span class="badge">{{ post.category }}</span>
+                                    <h3 class="news-card__title">{{ post.title }}</h3>
+                                    <p class="news-card__excerpt">{{ post.story }}</p>
+                                    <p class="mt-4 text-sm font-semibold text-[var(--yellow-dark)]">{{ post.published_date }}</p>
+                                    <div class="news-card__footer">
+                                        <a href="{% url 'contact' %}" class="text-link">Request Publication Access</a>
+                                    </div>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
                 {% else %}
                     <div class="empty-state">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

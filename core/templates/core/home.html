@@ -84,6 +84,28 @@
             <div class="mt-8 text-center">
                 <a href="{% url 'news_archive' %}" class="btn btn-primary">View All News</a>
             </div>
+        {% elif placeholder_news %}
+            <div class="grid-news">
+                {% for post in placeholder_news %}
+                    <article class="news-card">
+                        <div class="news-card__media">
+                            <div class="hero-slide__placeholder">Preview Story</div>
+                        </div>
+                        <div class="news-card__body">
+                            <span class="badge">{{ post.category }}</span>
+                            <h3 class="news-card__title">{{ post.title }}</h3>
+                            <p class="news-card__excerpt">{{ post.story }}</p>
+                            <div class="news-card__footer">
+                                <a href="{% url 'news_archive' %}" class="text-link">Explore News</a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <div class="mt-8 text-center">
+                <a href="{% url 'news_archive' %}" class="btn btn-primary">View All News</a>
+            </div>
         {% else %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

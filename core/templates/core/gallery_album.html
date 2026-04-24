@@ -25,6 +25,15 @@
                     </button>
                 {% endfor %}
             </div>
+        {% elif placeholder_images %}
+            <div class="gallery-detail-grid">
+                {% for image in placeholder_images %}
+                    <div class="gallery-tile">
+                        <div class="hero-slide__placeholder h-full w-full">Preview Image</div>
+                        <span class="gallery-tile__caption">{{ image.caption }}</span>
+                    </div>
+                {% endfor %}
+            </div>
         {% else %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">

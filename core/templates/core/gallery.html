@@ -31,6 +31,21 @@
                     </article>
                 {% endfor %}
             </div>
+        {% elif placeholder_albums %}
+            <div class="album-grid">
+                {% for album in placeholder_albums %}
+                    <article class="album-card">
+                        <div class="album-card__cover">
+                            <div class="album-card__placeholder">{{ album.title }}</div>
+                            <div class="album-card__overlay">View Album &rarr;</div>
+                        </div>
+                        <div class="album-card__body">
+                            <h3 class="album-card__title">{{ album.title }}</h3>
+                            <p class="album-card__meta">{{ album.image_count }} images</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
         {% else %}
             <div class="empty-state">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
