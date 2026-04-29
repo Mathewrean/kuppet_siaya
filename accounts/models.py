@@ -21,26 +21,30 @@ class School(models.Model):
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, tsc_number, email, password=None, **extra_fields):
+    def create_user(self, tsc_number, email=None, password=None, **extra_fields):
         if not tsc_number:
             raise ValueError(_('Users must have a TSC number'))
-        if not email:
-            raise ValueError(_('Users must have an email address'))
 
         user = self.model(
             tsc_number=tsc_number,
-            email=self.normalize_email(email),
+            email=self.normalize_email(email) if email else None,
             **extra_fields
         )
-        user.set_password(password)
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, tsc_number, email, password=None, **extra_fields):
+    def create_superuser(self, tsc_number, email=None, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('approval_status', 'APPROVED') # Superusers are always approved
+
+        if not email:
+            raise ValueError(_('Super users must have an email address.'))
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError(_('Super user must have is_staff=True.'))
@@ -53,7 +57,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     # Unique identifier for teachers
     tsc_number = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(_('email address'), unique=True)
+    email = models.EmailField(_('email address'), unique=True, null=True, blank=True)
 
     # Fields from registration form
     phone_number = models.CharField(max_length=20, blank=True)

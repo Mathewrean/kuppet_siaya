@@ -6,7 +6,7 @@
 <section class="auth-shell">
     <div class="auth-card">
         <h1 class="auth-heading">Member Login</h1>
-        <p class="auth-subheading">Enter your registered details to receive a secure one-time passcode.</p>
+        <p class="auth-subheading">Sign in with your TSC number and password.</p>
 
         <form method="post" class="space-y-5">
             {% csrf_token %}
@@ -15,10 +15,10 @@
                 <input type="text" id="tsc_number" name="tsc_number" required class="text-input">
             </div>
             <div class="field">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required class="text-input">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="text-input">
             </div>
-            <button type="submit" class="btn btn-primary w-full">Send OTP</button>
+            <button type="submit" class="btn btn-primary w-full">Log In</button>
         </form>
 
         <div class="auth-links">
