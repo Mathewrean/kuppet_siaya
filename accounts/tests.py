@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 from xml.sax.saxutils import escape
 
+from django.contrib.auth.hashers import identify_hasher
 from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
@@ -73,7 +74,16 @@ class SeedMembersCommandTests(TestCase):
             self.assertEqual(bernard.school, "Achage Pri Sch")
             self.assertEqual(bernard.approval_status, "APPROVED")
             self.assertTrue(bernard.is_active)
+            self.assertEqual(
+                identify_hasher(bernard.password).safe_summary(bernard.password)["iterations"],
+                120000,
+            )
             self.assertTrue(bernard.check_password("Bernard@5893"))
+            bernard.refresh_from_db()
+            self.assertEqual(
+                identify_hasher(bernard.password).safe_summary(bernard.password)["iterations"],
+                600000,
+            )
 
             self.assertEqual(judith.first_name, "Judith")
             self.assertEqual(judith.last_name, "Atieno")
