@@ -136,3 +136,6 @@ staticfiles/
 # Temporary files
 *.tmp
 *.temp
+
+Members.docs
+db.sqlite3
