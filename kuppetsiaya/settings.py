@@ -123,14 +123,20 @@ TEMPLATES = [
 WSGI_APPLICATION = 'kuppetsiaya.wsgi.application'
 
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    'legacy': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'legacy.db',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'kuppet',
+        'USER': 'kuppet',
+        'PASSWORD': '11C4pt41n254.',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
