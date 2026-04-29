@@ -33,7 +33,7 @@
                 </div>
                 <div class="profile-item">
                     <p class="profile-item__key">Email</p>
-                    <p class="profile-item__value">{{ user.email }}</p>
+                    <p class="profile-item__value">{{ user.email|default:"Not provided" }}</p>
                 </div>
                 <div class="profile-item">
                     <p class="profile-item__key">Phone Number</p>
@@ -72,7 +72,7 @@
                     </div>
                     <div class="field">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" value="{{ user.email }}" required class="text-input">
+                        <input type="email" id="email" name="email" value="{{ user.email|default:'' }}" class="text-input">
                     </div>
                     <div class="field">
                         <label for="phone_number">Phone Number</label>
