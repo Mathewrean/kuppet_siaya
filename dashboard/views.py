@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
 from rest_framework.permissions import IsAuthenticated
 
@@ -144,6 +145,10 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         form.instance.status = 'pending'
         form.instance.submitted_at = timezone.now()
         return super().form_valid(form)
+
+    def get_success_url(self):
+        from django.urls import reverse
+        return reverse('bbf_claims')
 
 
 # =============================================================================
