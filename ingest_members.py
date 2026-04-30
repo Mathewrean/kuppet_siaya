@@ -27,14 +27,17 @@ from datetime import datetime
 # Django setup
 import django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'kuppetsiaya.settings')
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 django.setup()
 
 from django.contrib.auth import get_user_model
 from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
 
-from accounts.models import CustomUser, SubCounty, School
+from accounts.models import CustomUser, SubCounty as SubCountyModel, School
+
+# For backwards compatibility alias
+User = CustomUser
 
 # =============================================================================
 # CONFIGURATION
@@ -183,7 +186,6 @@ def extract_school_name(station_name, subcounty):
 # MAIN INGESTION LOGIC
 # =============================================================================
 
-@transaction.atomic
 def ingest_members(csv_path):
     """
     Main ingestion function.
@@ -208,17 +210,17 @@ def ingest_members(csv_path):
     
     # Preload valid subcounties from database
     print("Loading subcounties from database...")
-    existing_subcounties = {sc.name.lower(): sc for sc in SubCounty.objects.all()}
+    existing_subcounties = {sc.name.lower(): sc for sc in SubCountyModel.objects.all()}
     
     # Create any missing subcounties (bulk)
     to_create = []
     for valid_sc in VALID_SUBCOUNTIES:
         key = valid_sc.lower()
         if key not in existing_subcounties:
-            to_create.append(SubCounty(name=valid_sc))
+            to_create.append(SubCountyModel(name=valid_sc))
     if to_create:
-        SubCounty.objects.bulk_create(to_create)
-        existing_subcounties.update({sc.name.lower(): sc for sc in SubCounty.objects.filter(name__in=[s.name for s in to_create])})
+        SubCountyModel.objects.bulk_create(to_create)
+        existing_subcounties.update({sc.name.lower(): sc for sc in SubCountyModel.objects.filter(name__in=[s.name for s in to_create])})
         print(f"  Created {len(to_create)} subcounties")
     
     print(f"  Total subcounties loaded: {len(existing_subcounties)}\n")
@@ -360,8 +362,7 @@ def ingest_members(csv_path):
     print(f"  Active: {User.objects.filter(is_active=True).count()}")
     print(f"  Approved: {User.objects.filter(approval_status='APPROVED').count()}")
     
-    from accounts.models import SubCounty
-    for sc in SubCounty.objects.all().order_by('name'):
+    for sc in SubCountyModel.objects.all().order_by('name'):
         count = User.objects.filter(sub_county=sc.name).count()
         if count > 0:
             print(f"    {sc.name}: {count}")
@@ -509,7 +510,7 @@ def ingest_members(csv_path):
     print(f"  Approved users: {approved_users}")
     
     subcounty_counts = {}
-    for sc in SubCounty.objects.all():
+    for sc in SubCountyModel.objects.all():
         count = User.objects.filter(sub_county=sc.name).count()
         if count > 0:
             subcounty_counts[sc.name] = count
