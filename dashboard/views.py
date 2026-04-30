@@ -138,6 +138,15 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
         return context
 
+    def form_valid(self, form):
+        # Set member and initial status
+        form.instance.member = self.request.user
+        form.instance.status = 'pending'
+        form.instance.submitted_at = timezone.now()
+        response = super().form_valid(form)
+        messages.warning(self.request, "Claim created. Use the API endpoints to add beneficiaries.")
+        return response
+
 
 # =============================================================================
 # Subcounty Representative Views (Dashboard)
