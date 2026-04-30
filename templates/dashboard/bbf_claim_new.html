@@ -1,0 +1,355 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}New BBF Claim - KUPPET Siaya Branch{% endblock %}
+{% block dashboard_title %}New BBF Claim{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / BBF Claims / New{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="eligibility-panel">
+        <h2 class="!text-xl mb-2">Create New BBF Claim</h2>
+        <p class="text-[var(--gray-400)]">Add beneficiaries and their required documents. All documents must be uploaded before submission.</p>
+    </div>
+
+    <form id="bbfClaimForm" method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Children Section -->
+        <section class="eligibility-panel">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-semibold text-lg">Children</h3>
+                    <p class="text-sm text-[var(--gray-400)]">Birth Certificate required for each child (max 5)</p>
+                </div>
+                <button type="button" onclick="addBeneficiary('child')" class="btn btn-secondary text-sm" id="addChildBtn">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Add Child</span>
+                </button>
+            </div>
+            <div id="childrenContainer" class="space-y-3"></div>
+        </section>
+
+        <!-- Spouse Section -->
+        <section class="eligibility-panel">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-semibold text-lg">Spouse</h3>
+                    <p class="text-sm text-[var(--gray-400)]">Marriage Affidavit required (max 1)</p>
+                </div>
+                <button type="button" onclick="addBeneficiary('spouse')" class="btn btn-secondary text-sm" id="addSpouseBtn">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Add Spouse</span>
+                </button>
+            </div>
+            <div id="spouseContainer" class="space-y-3"></div>
+        </section>
+
+        <!-- Parents Section -->
+        <section class="eligibility-panel">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-semibold text-lg">Parents</h3>
+                    <p class="text-sm text-[var(--gray-400)]">National ID Card required for each parent</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border border-[var(--gray-700)] rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="font-medium">Mother</h4>
+                            <p class="text-xs text-[var(--gray-400)]">National ID Card required</p>
+                        </div>
+                        <button type="button" onclick="addBeneficiary('parent_mother')" class="btn btn-secondary text-sm" id="addMotherBtn">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Add Mother</span>
+                        </button>
+                    </div>
+                    <div id="motherContainer"></div>
+                </div>
+                <div class="border border-[var(--gray-700)] rounded-lg p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="font-medium">Father</h4>
+                            <p class="text-xs text-[var(--gray-400)]">National ID Card required</p>
+                        </div>
+                        <button type="button" onclick="addBeneficiary('parent_father')" class="btn btn-secondary text-sm" id="addFatherBtn">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            <span>Add Father</span>
+                        </button>
+                    </div>
+                    <div id="fatherContainer"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Display -->
+        <div id="formErrors" class="hidden p-4 bg-red-500/10 border border-red-500/30 rounded-lg"></div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-end gap-4">
+            <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+                <span>Submit Claim</span>
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let beneficiaryCounter = 0;
+const MAX_CHILDREN = 5;
+
+function addBeneficiary(type) {
+    beneficiaryCounter++;
+    const id = `${type}_${beneficiaryCounter}_${Date.now()}`;
+    
+    let label = '';
+    let docLabel = '';
+    
+    switch(type) {
+        case 'child': label = 'Child'; docLabel = 'Birth Certificate'; break;
+        case 'spouse': label = 'Spouse'; docLabel = 'Marriage Affidavit'; break;
+        case 'parent_mother': label = 'Mother'; docLabel = 'National ID Card'; break;
+        case 'parent_father': label = 'Father'; docLabel = 'National ID Card'; break;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'beneficiary-row flex items-center gap-3 p-3 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]';
+    row.dataset.type = type;
+    row.dataset.id = id;
+    row.innerHTML = `
+        <input type="hidden" name="beneficiaries_${id}_type" value="${type}">
+        <svg class="h-5 w-5 text-[var(--gray-400)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+                <label class="block text-xs text-[var(--gray-400)] mb-1">Full Name - ${label}</label>
+                <input type="text" name="beneficiaries_${id}_name" 
+                       class="form-input block w-full bg-[var(--bg-card)] border-[var(--gray-700)] text-sm" 
+                       placeholder="Enter full name" required>
+            </div>
+            <div>
+                <label class="block text-xs text-[var(--gray-400)] mb-1">${docLabel} (PDF/JPG/PNG, max 5MB)</label>
+                <input type="file" name="beneficiaries_${id}_document" accept=".pdf,.jpg,.jpeg,.png" 
+                       class="form-input block w-full bg-[var(--bg-card)] border-[var(--gray-700)] text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[var(--accent-color)] file:text-[var(--bg-card)] hover:file:bg-[var(--accent-hover)]" required>
+            </div>
+        </div>
+        <button type="button" onclick="removeBeneficiary(this)" class="text-[var(--gray-400)] hover:text-red-500 transition-colors p-1" title="Remove">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    `;
+
+    const containerMap = {
+        'child': 'childrenContainer',
+        'spouse': 'spouseContainer',
+        'parent_mother': 'motherContainer',
+        'parent_father': 'fatherContainer'
+    };
+    document.getElementById(containerMap[type]).appendChild(row);
+
+    updateButtonStates();
+}
+
+function removeBeneficiary(btn) {
+    const row = btn.closest('.beneficiary-row');
+    row.remove();
+    updateButtonStates();
+}
+
+function updateButtonStates() {
+    const childrenCount = document.querySelectorAll('[data-type="child"]').length;
+    const hasSpouse = document.querySelectorAll('[data-type="spouse"]').length > 0;
+    const hasMother = document.querySelectorAll('[data-type="parent_mother"]').length > 0;
+    const hasFather = document.querySelectorAll('[data-type="parent_father"]').length > 0;
+
+    document.getElementById('addChildBtn').disabled = childrenCount >= MAX_CHILDREN;
+    if (childrenCount >= MAX_CHILDREN) {
+        document.getElementById('addChildBtn').innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg><span>Maximum of 5 children reached</span>';
+        document.getElementById('addChildBtn').classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        document.getElementById('addChildBtn').innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg><span>Add Child</span>';
+        document.getElementById('addChildBtn').classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    document.getElementById('addSpouseBtn').style.display = hasSpouse ? 'none' : '';
+    document.getElementById('addSpouseBtn').disabled = hasSpouse;
+    document.getElementById('addMotherBtn').style.display = hasMother ? 'none' : '';
+    document.getElementById('addMotherBtn').disabled = hasMother;
+    document.getElementById('addFatherBtn').style.display = hasFather ? 'none' : '';
+    document.getElementById('addFatherBtn').disabled = hasFather;
+}
+
+document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const form = e.target;
+    const formData = new FormData(form);
+    const errors = [];
+    
+    // Count beneficiaries
+    const rows = document.querySelectorAll('.beneficiary-row');
+    if (rows.length === 0) {
+        errors.push('At least one beneficiary is required.');
+    }
+
+    // Check that all beneficiaries have uploaded documents
+    for (const row of rows) {
+        const fileInput = row.querySelector('input[type="file"]');
+        const nameInput = row.querySelector('input[type="text"]');
+        const type = row.dataset.type;
+        
+        if (!nameInput.value.trim()) {
+            errors.push(`Please enter a name for the ${type === 'child' ? 'child' : type === 'spouse' ? 'spouse' : type === 'parent_mother' ? 'mother' : 'father'}.`);
+        }
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            errors.push(`Document required for ${nameInput.value || type}`);
+        }
+    }
+
+    if (errors.length > 0) {
+        const errorDiv = document.getElementById('formErrors');
+        errorDiv.classList.remove('hidden');
+        errorDiv.innerHTML = '<p class="font-medium text-red-500 mb-2">Please fix the following errors:</p><ul class="list-disc list-inside space-y-1 text-red-500">' + 
+            errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+    }
+
+    // Submit via API
+    async function submitClaim() {
+        try {
+            // Step 1: Create the claim
+            const response = await fetch('{% url "bbf-claims-list" %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({})
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to create claim');
+            }
+
+            const claimId = data.id;
+
+            // Step 2: Add beneficiaries one by one
+            const rows = document.querySelectorAll('.beneficiary-row');
+            for (const row of rows) {
+                const type = row.dataset.type;
+                const nameInput = row.querySelector('input[type="text"]');
+                const fileInput = row.querySelector('input[type="file"]');
+                
+                const benFormData = new FormData();
+                benFormData.append('beneficiary_type', type);
+                benFormData.append('full_name', nameInput.value);
+                if (fileInput.files[0]) {
+                    benFormData.append('document', fileInput.files[0]);
+                }
+
+                const benResponse = await fetch(`/api/bbf/claims/${claimId}/beneficiaries/`, {
+                    method: 'POST',
+                    body: benFormData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (!benResponse.ok) {
+                    throw new Error(`Failed to add beneficiary: ${nameInput.value}`);
+                }
+            }
+
+            window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${claimId}/`);
+        } catch (err) {
+            const errorDiv = document.getElementById('formErrors');
+            errorDiv.classList.remove('hidden');
+            errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (err.message || 'An error occurred') + '</p>';
+            console.error(err);
+        }
+    }
+
+    document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const errors = [];
+        
+        // Count beneficiaries
+        const rows = document.querySelectorAll('.beneficiary-row');
+        if (rows.length === 0) {
+            errors.push('At least one beneficiary is required.');
+        }
+
+        // Check that all beneficiaries have uploaded documents
+        for (const row of rows) {
+            const fileInput = row.querySelector('input[type="file"]');
+            const nameInput = row.querySelector('input[type="text"]');
+            const type = row.dataset.type;
+            
+            let typeLabel = type;
+            if (type === 'child') typeLabel = 'child';
+            else if (type === 'spouse') typeLabel = 'spouse';
+            else if (type === 'parent_mother') typeLabel = 'mother';
+            else if (type === 'parent_father') typeLabel = 'father';
+            
+            if (!nameInput.value.trim()) {
+                errors.push(`Please enter a name for the ${typeLabel}.`);
+            }
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errors.push(`Document required for ${nameInput.value || typeLabel}`);
+            }
+        }
+
+        if (errors.length > 0) {
+            const errorDiv = document.getElementById('formErrors');
+            errorDiv.classList.remove('hidden');
+            errorDiv.innerHTML = '<p class="font-medium text-red-500 mb-2">Please fix the following errors:</p><ul class="list-disc list-inside space-y-1 text-red-500">' + 
+                errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return;
+        }
+
+        await submitClaim();
+    });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${data.id}/`);
+        } else {
+            const errorDiv = document.getElementById('formErrors');
+            errorDiv.classList.remove('hidden');
+            errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (data.error || JSON.stringify(data)) + '</p>';
+        }
+    } catch (err) {
+        const errorDiv = document.getElementById('formErrors');
+        errorDiv.classList.remove('hidden');
+        errorDiv.innerHTML = '<p class="font-medium text-red-500">An error occurred. Please try again.</p>';
+        console.error(err);
+    }
+});
+</script>
+{% endblock %}

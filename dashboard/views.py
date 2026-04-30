@@ -1,11 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, ListView, DetailView, CreateView
+from rest_framework.permissions import IsAuthenticated
 
-from accounts.models import BBFContribution, SupportTicket
+from accounts.models import BBFContribution, SupportTicket, CustomUser
 from core.models import FinancialStatement
+from bbf.models import BBFClaim, BBFBeneficiary
+from bbf.serializers import BBFClaimSerializer
+import json
 
 
 def get_bbf_status(total_contributed):
@@ -94,3 +98,145 @@ class SupportView(LoginRequiredMixin, TemplateView):
         )
         messages.success(request, "Your support request has been submitted.")
         return redirect("support")
+
+
+# =============================================================================
+# BBF Claims - Member Views
+# =============================================================================
+
+class BBFClaimsListView(LoginRequiredMixin, ListView):
+    template_name = "dashboard/bbf_claims_list.html"
+    login_url = reverse_lazy("login")
+    context_object_name = "claims"
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(member=self.request.user).order_by("-submitted_at")
+
+
+class BBFClaimDetailView(LoginRequiredMixin, DetailView):
+    template_name = "dashboard/bbf_claim_detail.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(member=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
+        return context
+
+
+class BBFClaimCreateView(LoginRequiredMixin, CreateView):
+    template_name = "dashboard/bbf_claim_new.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+    fields = []
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
+        return context
+
+
+# =============================================================================
+# Subcounty Representative Views (Dashboard)
+# =============================================================================
+
+class SubcountyDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/subcounty_dashboard.html"
+    login_url = reverse_lazy("login")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_subcounty_rep or request.user.is_superuser):
+            from django.contrib import messages
+            messages.error(request, "Access denied. Subcounty Representative role required.")
+            return redirect("dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class SubcountyClaimReviewView(LoginRequiredMixin, DetailView):
+    template_name = "dashboard/subcounty_claim_review.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_subcounty_rep or request.user.is_superuser):
+            from django.contrib import messages
+            messages.error(request, "Access denied. Subcounty Representative role required.")
+            return redirect("dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(status='awaiting_subcounty')
+
+
+# =============================================================================
+# County Representative Views (Dashboard)
+# =============================================================================
+
+class CountyDashboardView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/county_dashboard.html"
+    login_url = reverse_lazy("login")
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_county_rep or request.user.is_superuser):
+            from django.contrib import messages
+            messages.error(request, "Access denied. County Representative role required.")
+            return redirect("dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CountyClaimReviewView(LoginRequiredMixin, DetailView):
+    template_name = "dashboard/county_claim_review.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+
+    def dispatch(self, request, *args, **kwargs):
+        if not (request.user.is_county_rep or request.user.is_superuser):
+            from django.contrib import messages
+            messages.error(request, "Access denied. County Representative role required.")
+            return redirect("dashboard")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(status='awaiting_county')
+
+
+# =============================================================================
+# BBF Claims - Member Views
+# =============================================================================
+
+class BBFClaimsListView(LoginRequiredMixin, ListView):
+    template_name = "dashboard/bbf_claims_list.html"
+    login_url = reverse_lazy("login")
+    context_object_name = "claims"
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(member=self.request.user).order_by("-submitted_at")
+
+
+class BBFClaimDetailView(LoginRequiredMixin, DetailView):
+    template_name = "dashboard/bbf_claim_detail.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+
+    def get_queryset(self):
+        return BBFClaim.objects.filter(member=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
+        return context
+
+
+class BBFClaimCreateView(LoginRequiredMixin, CreateView):
+    template_name = "dashboard/bbf_claim_new.html"
+    login_url = reverse_lazy("login")
+    model = BBFClaim
+    fields = []
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
+        return context

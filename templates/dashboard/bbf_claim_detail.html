@@ -1,0 +1,212 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}BBF Claim {{ object.claim_reference }} - KUPPET Siaya Branch{% endblock %}
+{% block dashboard_title %}Claim Details{% endblock %}
+{% block dashboard_breadcrumb %}Member Portal / BBF Claims / {{ object.claim_reference }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-sm text-[var(--gray-400)]">Claim Reference</p>
+            <p class="font-mono text-lg font-semibold">{{ object.claim_reference }}</p>
+        </div>
+        <div class="text-right">
+            <p class="text-sm text-[var(--gray-400)]">Submitted</p>
+            <p class="font-medium">{{ object.submitted_at|date:"M d, Y H:i" }}</p>
+        </div>
+    </div>
+
+    <!-- Tracking Status Bar -->
+    <section class="eligibility-panel">
+        <h3 class="!text-lg mb-6">Claim Progress</h3>
+        <div class="tracking-stepper">
+            <div class="tracking-step {% if object.status == 'approved' %}tracking-step--active{% elif object.status in 'awaiting_subcounty awaiting_county rejected' %}tracking-step--complete{% endif %}">
+                <div class="tracking-step__icon">
+                    {% if object.status == 'approved' %}
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path></svg>
+                    {% else %}
+                        <span>1</span>
+                    {% endif %}
+                </div>
+                <span class="tracking-step__label">Submitted</span>
+            </div>
+            <div class="tracking-step__connector {% if object.status in 'awaiting_subcounty awaiting_county approved rejected' %}tracking-step__connector--active{% endif %}"></div>
+            <div class="tracking-step {% if object.status in 'awaiting_county approved rejected' %}tracking-step--active{% elif object.status == 'awaiting_subcounty' %}tracking-step--complete{% endif %}">
+                <div class="tracking-step__icon">
+                    {% if object.status in 'awaiting_county approved rejected' %}
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path></svg>
+                    {% else %}
+                        <span>2</span>
+                    {% endif %}
+                </div>
+                <span class="tracking-step__label">Awaiting Subcounty Confirmation</span>
+            </div>
+            <div class="tracking-step__connector {% if object.status in 'awaiting_county approved rejected' %}tracking-step__connector--active{% endif %}"></div>
+            <div class="tracking-step {% if object.status == 'approved' %}tracking-step--active{% elif object.status == 'awaiting_county' %}tracking-step--complete{% endif %}">
+                <div class="tracking-step__icon">
+                    {% if object.status == 'approved' %}
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path></svg>
+                    {% else %}
+                        <span>3</span>
+                    {% endif %}
+                </div>
+                <span class="tracking-step__label">Awaiting County Confirmation</span>
+            </div>
+            <div class="tracking-step__connector {% if object.status == 'approved' %}tracking-step__connector--active{% endif %}"></div>
+            <div class="tracking-step {% if object.status == 'approved' %}tracking-step--active{% endif %}">
+                <div class="tracking-step__icon">
+                    {% if object.status == 'approved' %}
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path></svg>
+                    {% else %}
+                        <span>4</span>
+                    {% endif %}
+                </div>
+                <span class="tracking-step__label">Approved</span>
+            </div>
+        </div>
+        {% if object.status == 'rejected' %}
+            <div class="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3">
+                <svg class="h-6 w-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <p class="text-red-500 font-medium">This claim was rejected. Please contact your branch for more information.</p>
+            </div>
+        {% endif %}
+    </section>
+
+        <!-- Claim Info -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="eligibility-panel">
+            <h3 class="!text-lg mb-4">Claim Information</h3>
+            <dl class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Status</dt>
+                    <dd>
+                        {% if object.status == 'pending' %}
+                            <span class="status-badge status-badge--muted">Pending</span>
+                        {% elif object.status == 'awaiting_subcounty' %}
+                            <span class="status-badge status-badge--pending">Awaiting Subcounty</span>
+                        {% elif object.status == 'awaiting_county' %}
+                            <span class="status-badge status-badge--info">Awaiting County</span>
+                        {% elif object.status == 'approved' %}
+                            <span class="status-badge status-badge--good">Approved</span>
+                        {% elif object.status == 'rejected' %}
+                            <span class="status-badge status-badge--bad">Rejected</span>
+                        {% endif %}
+                    </dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Submitted At</dt>
+                    <dd class="font-medium">{{ object.submitted_at|date:"F d, Y H:i" }}</dd>
+                </div>
+                {% if object.subcounty_confirmed_at %}
+                    <div class="flex justify-between">
+                        <dt class="text-[var(--gray-400)]">Subcounty Confirmed</dt>
+                        <dd class="font-medium">{{ object.subcounty_confirmed_at|date:"F d, Y H:i" }}</dd>
+                    </div>
+                {% endif %}
+                {% if object.county_confirmed_at %}
+                    <div class="flex justify-between">
+                        <dt class="text-[var(--gray-400)]">County Approved</dt>
+                        <dd class="font-medium">{{ object.county_confirmed_at|date:"F d, Y H:i" }}</dd>
+                    </div>
+                {% endif %}
+            </dl>
+        </div>
+
+        <div class="eligibility-panel">
+            <h3 class="!text-lg mb-4">Summary</h3>
+            <dl class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Beneficiaries</dt>
+                    <dd class="font-semibold">{{ object.beneficiaries_count }}</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Approved</dt>
+                    <dd class="text-green-500 font-semibold" id="approved-count">0</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Pending</dt>
+                    <dd class="text-amber-500 font-semibold" id="pending-count">0</dd>
+                </div>
+                <div class="flex justify-between">
+                    <dt class="text-[var(--gray-400)]">Rejected</dt>
+                    <dd class="text-red-500 font-semibold" id="rejected-count">0</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <!-- Beneficiaries Table -->
+    <section>
+        <h3 class="!text-lg mb-4">Beneficiaries</h3>
+        <div class="table-shell">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Document Uploaded</th>
+                        <th>Document Status</th>
+                    </tr>
+                </thead>
+                <tbody id="beneficiariesList">
+                    {% for ben in object.beneficiaries.all %}
+                        <tr>
+                            <td class="font-medium">{{ ben.full_name }}</td>
+                            <td>{{ ben.get_beneficiary_type_display }}</td>
+                            <td>
+                                {% if ben.document %}
+                                    <span class="flex items-center gap-1 text-green-500">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Yes
+                                    </span>
+                                {% else %}
+                                    <span class="text-[var(--gray-400)]">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ben.document_status == 'pending' %}
+                                    <span class="status-badge status-badge--muted">Pending</span>
+                                {% elif ben.document_status == 'approved' %}
+                                    <span class="status-badge status-badge--good">Approved</span>
+                                {% elif ben.document_status == 'rejected' %}
+                                    <span class="status-badge status-badge--bad">Rejected</span>
+                                {% else %}
+                                    <span class="status-badge status-badge--muted">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-[var(--gray-500)]">No beneficiaries added</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Count beneficiary statuses
+    const approvedCount = document.querySelectorAll('[id="beneficiariesList"] [class*="status-badge--good"]').length;
+    const pendingCount = document.querySelectorAll('[id="beneficiariesList"] [class*="status-badge--muted"]').length;
+    const rejectedCount = document.querySelectorAll('[id="beneficiariesList"] [class*="status-badge--bad"]').length;
+    
+    const approvedEl = document.getElementById('approved-count');
+    const pendingEl = document.getElementById('pending-count');
+    const rejectedEl = document.getElementById('rejected-count');
+    
+    if (approvedEl) approvedEl.textContent = approvedCount;
+    if (pendingEl) pendingEl.textContent = pendingCount;
+    if (rejectedEl) rejectedEl.textContent = rejectedCount;
+</script>
+{% endblock %}

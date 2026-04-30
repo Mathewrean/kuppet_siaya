@@ -32,7 +32,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
-    "127.0.0.1",
+    "testserver",
 ]
 
 # Tailwind CSS Configuration
@@ -132,12 +132,8 @@ WSGI_APPLICATION = 'kuppetsiaya.wsgi.application'
 # }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'kuppet',
-        'USER': 'kuppet',
-        'PASSWORD': '11C4pt41n254.',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

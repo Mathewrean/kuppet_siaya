@@ -20,6 +20,12 @@
                 </svg>
                 <span class="dashboard-nav-label">Dashboard</span>
             </a>
+            <a href="{% url 'bbf_claims' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'bbf_claims' or request.resolver_match.url_name == 'bbf_claim_create' or request.resolver_match.url_name == 'bbf_claim_detail' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span class="dashboard-nav-label">BBF Claims</span>
+            </a>
             <a href="{% url 'bbf_status' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'bbf_status' %}is-active{% endif %}">
                 <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h10"></path>
@@ -33,6 +39,22 @@
                 </svg>
                 <span class="dashboard-nav-label">Financials</span>
             </a>
+            {% if user.is_subcounty_rep or user.is_superuser %}
+            <a href="{% url 'subcounty_dashboard' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'subcounty_dashboard' or request.resolver_match.url_name == 'subcounty_claim_review' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                </svg>
+                <span class="dashboard-nav-label">Subcounty Desk</span>
+            </a>
+            {% endif %}
+            {% if user.is_county_rep or user.is_superuser %}
+            <a href="{% url 'county_dashboard' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'county_dashboard' or request.resolver_match.url_name == 'county_claim_review' %}is-active{% endif %}">
+                <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                </svg>
+                <span class="dashboard-nav-label">County Desk</span>
+            </a>
+            {% endif %}
             <a href="{% url 'profile' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'profile' %}is-active{% endif %}">
                 <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8z"></path>

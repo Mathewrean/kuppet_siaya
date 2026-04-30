@@ -1,0 +1,223 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Approve Claim {{ object.claim_reference }} - KUPPET Siaya Branch{% endblock %}
+{% block dashboard_title %}County Approval{% endblock %}
+{% block dashboard_breadcrumb %}County Review / {{ object.claim_reference }}{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="flex items-start justify-between">
+        <div>
+            <p class="text-sm text-[var(--gray-400)]">Claim Reference</p>
+            <p class="font-mono text-lg font-semibold">{{ object.claim_reference }}</p>
+        </div>
+        <span class="status-badge status-badge--pending">Awaiting County Confirmation</span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2">
+            <section class="eligibility-panel">
+                <h3 class="!text-lg mb-4">Member Information</h3>
+                <dl class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <dt class="text-[var(--gray-400)]">Full Name</dt>
+                        <dd class="font-medium">{{ object.member.get_full_name }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[var(--gray-400)]">TSC Number</dt>
+                        <dd class="font-mono">{{ object.member.tsc_number }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[var(--gray-400)]">Subcounty</dt>
+                        <dd class="font-medium">{{ object.member.sub_county }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[var(--gray-400)]">School</dt>
+                        <dd class="font-medium">{{ object.member.school }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[var(--gray-400)]">Submitted</dt>
+                        <dd class="font-medium">{{ object.submitted_at|date:"F d, Y H:i" }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-[var(--gray-400)]">Subcounty Confirmed</dt>
+                        <dd class="font-medium">{{ object.subcounty_confirmed_at|date:"F d, Y H:i" }}</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <section class="eligibility-panel">
+                <h3 class="!text-lg mb-4">Beneficiaries</h3>
+                <div class="space-y-4" id="beneficiariesList">
+                    {% for ben in object.beneficiaries.all %}
+                        <div class="p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]">
+                            <div class="flex items-start justify-between mb-2">
+                                <div class="flex items-center gap-3">
+                                    <svg class="h-6 w-6 text-[var(--accent-color)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <div>
+                                        <h4 class="font-semibold">{{ ben.full_name }}</h4>
+                                        <p class="text-sm text-[var(--gray-400)]">{{ ben.get_beneficiary_type_display }}</p>
+                                    </div>
+                                </div>
+                                <span class="status-badge status-badge-{{ ben.document_status }}">{{ ben.get_document_status_display }}</span>
+                            </div>
+                            {% if ben.document %}
+                                <a href="{{ ben.document.url }}" target="_blank" class="btn btn-secondary text-sm flex items-center gap-1 inline-block">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                    </svg>
+                                    View Document
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <div class="space-y-4">
+            <section class="eligibility-panel">
+                <h3 class="!text-lg mb-4">Review Actions</h3>
+                <p class="text-sm text-[var(--gray-400)] mb-4">All beneficiary documents have been reviewed and approved by the Subcounty Representative.</p>
+                <div class="space-y-3">
+                    <button onclick="approveClaim()" id="approveClaimBtn"
+                        class="btn btn-success w-full flex items-center justify-center gap-2">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path>
+                        </svg>
+                        Approve Claim
+                    </button>
+                    <button onclick="rejectClaim()" id="rejectClaimBtn"
+                        class="btn w-full flex items-center justify-center gap-2 bg-red-900/50 text-red-400 hover:bg-red-900/80 hover:text-red-300 border border-red-900/50 hover:border-red-800">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                        </svg>
+                        Reject Claim
+                    </button>
+                    <a href="{% url 'county-claims' %}" class="btn btn-secondary w-full text-center block">
+                        Back to Queue
+                    </a>
+                </div>
+            </section>
+
+            <section class="eligibility-panel">
+                <h3 class="!text-lg mb-4">Status Legend</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge status-badge--good"></span>
+                        <span>Approved</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge status-badge--muted"></span>
+                        <span>Pending</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="status-badge status-badge--bad"></span>
+                        <span>Rejected</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<div id="approveModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[var(--bg-card)] rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-2">Approve Claim</h3>
+        <p class="text-[var(--gray-400)] mb-4">Are you sure you want to approve this BBF claim? The member will be notified of the final approval.</p>
+        <div class="flex gap-3">
+            <button onclick="doApproveClaim()" class="btn btn-success flex-1">Yes, Approve</button>
+            <button onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="rejectModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-[var(--bg-card)] rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-2">Reject Claim</h3>
+        <p class="text-[var(--gray-400)] mb-4">Are you sure you want to reject this claim? The member will be notified.</p>
+        <div class="flex gap-3">
+            <button onclick="doRejectClaim()" class="btn btn-danger flex-1">Yes, Reject</button>
+            <button onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+}
+
+let approvePending = false;
+let rejectPending = false;
+
+function approveClaim() {
+    document.getElementById('approveModal').classList.remove('hidden');
+}
+
+function rejectClaim() {
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function closeModal() {
+    document.getElementById('approveModal').classList.add('hidden');
+    document.getElementById('rejectModal').classList.add('hidden');
+}
+
+function doApproveClaim() {
+    if (approvePending) return;
+    approvePending = true;
+    const btn = document.getElementById('approveClaimBtn');
+    btn.disabled = true;
+    
+    const claimId = {{ object.id }};
+    fetch(`/api/bbf/county/claims/${claimId}/confirm/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCSRFToken()
+        }
+    }).then(r => r.json())
+    .then(data => {
+        alert('Claim approved successfully. Member has been notified.');
+        window.location.href = '{% url "county-claims" %}';
+    }).catch(err => {
+        alert('Error: ' + (err.message || 'Failed to approve claim'));
+        btn.disabled = false;
+        approvePending = false;
+    });
+}
+
+function doRejectClaim() {
+    if (rejectPending) return;
+    rejectPending = true;
+    
+    const claimId = {{ object.id }};
+    fetch(`/api/bbf/county/claims/${claimId}/reject/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCSRFToken()
+        }
+    }).then(r => r.json())
+    .then(data => {
+        alert('Claim rejected. Member has been notified.');
+        window.location.href = '{% url "county-claims" %}';
+    }).catch(err => {
+        alert('Error: ' + (err.message || 'Failed to reject claim'));
+        rejectPending = false;
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeModal();
+    }
+});
+</script>
+{% endblock %}

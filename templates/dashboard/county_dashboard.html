@@ -1,0 +1,133 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}County Dashboard - KUPPET Siaya Branch{% endblock %}
+{% block dashboard_title %}County Representative Dashboard{% endblock %}
+{% block dashboard_breadcrumb %}County Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="eligibility-panel">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <svg class="h-6 w-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-[var(--gray-400)]">Pending County Review</p>
+                    <p class="text-2xl font-bold text-purple-500" id="pendingCount">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="eligibility-panel">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-[var(--gray-400)]">Approved Today</p>
+                    <p class="text-2xl font-bold text-green-500" id="approvedTodayCount">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="eligibility-panel">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-red-500/20 flex items-center justify-center">
+                    <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-sm text-[var(--gray-400)]">Rejected Today</p>
+                    <p class="text-2xl font-bold text-red-500" id="rejectedTodayCount">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section>
+        <div class="eligibility-panel">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="!text-lg">Claims Queue - Awaiting County Confirmation</h3>
+                <div class="text-sm text-[var(--gray-400)]"><span id="queueCount">0</span> claims pending review</div>
+            </div>
+            <div id="claimsQueue" class="space-y-3">
+                <div class="text-center py-8 text-[var(--gray-400)]">
+                    <svg class="h-12 w-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p>No claims awaiting review</p>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function loadClaims() {
+    try {
+        const response = await fetch('{% url "county-claims" %}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 403) {
+                document.getElementById('claimsQueue').innerHTML = '<p class="text-center py-8 text-red-500">Access denied. County Representative role required.</p>';
+                return;
+            }
+            throw new Error('Failed to load claims');
+        }
+        
+        const claims = await response.json();
+        const queueEl = document.getElementById('claimsQueue');
+        const queueCount = document.getElementById('queueCount');
+        const pendingCount = document.getElementById('pendingCount');
+        
+        queueCount.textContent = claims.length;
+        pendingCount.textContent = claims.length;
+
+        if (claims.length === 0) {
+            queueEl.innerHTML = '<div class="text-center py-8 text-[var(--gray-400)]"><p>No claims awaiting review</p></div>';
+            return;
+        }
+
+        queueEl.innerHTML = claims.map(claim => `
+            <div class="flex items-center justify-between p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)] hover:border-[var(--accent-color)] transition-colors cursor-pointer" onclick="window.location.href='/dashboard/county/claims/${claim.id}/'">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-[var(--accent-color)]/20 flex items-center justify-center">
+                        <svg class="h-5 w-5 text-[var(--accent-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold">${claim.claim_reference}</p>
+                        <p class="text-sm text-[var(--gray-400)]">${claim.member_name}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-[var(--gray-400)]">Confirmed: ${new Date(claim.subcounty_confirmed_at).toLocaleDateString()}</p>
+                    <p class="text-sm font-medium">${claim.beneficiaries_count} beneficiaries</p>
+                </div>
+                <svg class="h-5 w-5 text-[var(--gray-400)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error(err);
+        document.getElementById('claimsQueue').innerHTML = '<p class="text-center py-8 text-red-500">Error loading claims. Please try again.</p>';
+    }
+}
+
+loadClaims();
+</script>
+{% endblock %}
