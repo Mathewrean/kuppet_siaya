@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
 from .models import BECMember, BGCMember, ContactMessage, GalleryAlbum, NewsPost
 
@@ -82,13 +84,11 @@ def about_profile(request):
 
 
 def about_bec(request):
-    members = BECMember.objects.all()
-    return render(request, "core/about_bec.html", {"members": members})
+    return render(request, "core/about_bec.html")
 
 
 def about_bgc(request):
-    members = BGCMember.objects.all()
-    return render(request, "core/about_bgc.html", {"members": members})
+    return render(request, "core/about_bgc.html")
 
 
 def projects(request):
@@ -109,38 +109,13 @@ def projects_center(request):
 
 def gallery(request):
     albums = GalleryAlbum.objects.prefetch_related("images").all()
-    context = {
-        "albums": albums,
-        "placeholder_albums": [] if albums else PLACEHOLDER_ALBUMS,
-    }
-    return render(request, "core/gallery.html", context)
+    return render(request, "core/gallery.html", {"albums": albums})
 
 
 def gallery_album(request, slug):
-    album = get_object_or_404(GalleryAlbum.objects.prefetch_related("images"), slug=slug)
-    context = {
-        "album": album,
-        "placeholder_images": [] if album.images.exists() else PLACEHOLDER_GALLERY_IMAGES,
-    }
-    return render(request, "core/gallery_album.html", context)
-
-
-def contact(request):
-    if request.method == "POST":
-        ContactMessage.objects.create(
-            first_name=request.POST["first_name"],
-            last_name=request.POST["last_name"],
-            email=request.POST["email"],
-            tsc_number=request.POST.get("tsc_number", ""),
-            phone_number=request.POST.get("phone_number", ""),
-            subject=request.POST["subject"],
-            message=request.POST["message"],
-            consent=request.POST.get("consent") == "on",
-        )
-        messages.success(request, "Your message has been sent successfully.")
-        return redirect("contact")
-
-    return render(request, "core/contact.html")
+    album = get_object_or_404(GalleryAlbum, slug=slug)
+    images = album.images.all()
+    return render(request, "core/gallery_album.html", {"album": album, "images": images})
 
 
 def news_detail(request, slug):
@@ -149,26 +124,35 @@ def news_detail(request, slug):
 
 
 def news_archive(request):
-    category = request.GET.get("category", "").strip()
-    search = request.GET.get("search", "").strip()
-
-    news = NewsPost.objects.filter(is_published=True).order_by("-published_date")
-
-    if category:
-        news = news.filter(category=category)
-
-    if search:
-        news = news.filter(Q(title__icontains=search) | Q(story__icontains=search))
-
-    paginator = Paginator(news, 10)
+    posts = NewsPost.objects.filter(is_published=True).order_by("-published_date")
+    paginator = Paginator(posts, 12)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+    return render(request, "core/news_archive.html", {"page_obj": page_obj})
 
-    context = {
-        "page_obj": page_obj,
-        "category": category,
-        "search": search,
-        "categories": NEWS_CATEGORIES,
-        "placeholder_news": PLACEHOLDER_NEWS if not news.exists() else [],
-    }
-    return render(request, "core/news_archive.html", context)
+
+def contact(request):
+    if request.method == "POST":
+        # Handle form submission
+        pass
+    return render(request, "core/contact.html")
+
+
+@require_GET
+def homepage_slider_api(request):
+    albums = GalleryAlbum.objects.filter(
+        show_on_homepage_slider=True,
+        cover_image__isnull=False
+    ).order_by('slider_order')
+    data = [
+        {
+            'id': album.id,
+            'title': album.title,
+            'caption': album.description or album.title,
+            'cover_image_url': album.cover_image.url if album.cover_image else None,
+            'slug': album.slug,
+            'slider_order': album.slider_order,
+        }
+        for album in albums
+    ]
+    return JsonResponse(data, safe=False)

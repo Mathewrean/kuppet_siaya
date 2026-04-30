@@ -21,6 +21,11 @@ class GalleryAlbum(models.Model):
     slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField(blank=True)
     cover_image = models.ImageField(upload_to='gallery_covers/', blank=True, null=True)
+    show_on_homepage_slider = models.BooleanField(default=False)
+    slider_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['slider_order', 'title']
 
     def __str__(self):
         return self.title

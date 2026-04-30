@@ -1,0 +1,131 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}New BBF Claim{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">New BBF Claim</h2>
+    <a href="{% url 'bbf_claims' %}" class="btn btn-outline-secondary">Back</a>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <form id="claimForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+          <!-- Children -->
+          <div class="col-md-6">
+            <div class="border p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Children <span class="badge bg-secondary" id="childCount">0/5</span></h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('child')">Add</button>
+              </div>
+              <div id="childrenContainer"></div>
+            </div>
+          </div>
+          <!-- Spouse -->
+          <div class="col-md-6">
+            <div class="border p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Spouse <span class="badge bg-secondary" id="spouseCount">0/1</span></h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('spouse')">Add</button>
+              </div>
+              <div id="spouseContainer"></div>
+            </div>
+          </div>
+          <!-- Mother -->
+          <div class="col-md-6">
+            <div class="border p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Mother <span class="badge bg-secondary" id="motherCount">0/1</span></h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('parent_mother')">Add</button>
+              </div>
+              <div id="motherContainer"></div>
+            </div>
+          </div>
+          <!-- Father -->
+          <div class="col-md-6">
+            <div class="border p-3 mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Father <span class="badge bg-secondary" id="fatherCount">0/1</span></h5>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('parent_father')">Add</button>
+              </div>
+              <div id="fatherContainer"></div>
+            </div>
+          </div>
+        </div>
+        <div class="alert alert-danger d-none" id="formError"></div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Claim</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+let childIdx = 0, spouseIdx = 0, motherIdx = 0, fatherIdx = 0;
+function addBeneficiary(type) {
+  let container, countEl, max, idx;
+  switch(type) {
+    case 'child': container = document.getElementById('childrenContainer'); countEl = document.getElementById('childCount'); max = 5; idx = childIdx++; break;
+    case 'spouse': container = document.getElementById('spouseContainer'); countEl = document.getElementById('spouseCount'); max = 1; idx = spouseIdx++; break;
+    case 'parent_mother': container = document.getElementById('motherContainer'); countEl = document.getElementById('motherCount'); max = 1; idx = motherIdx++; break;
+    case 'parent_father': container = document.getElementById('fatherContainer'); countEl = document.getElementById('fatherCount'); max = 1; idx = fatherIdx++; break;
+  }
+  if (container.querySelectorAll('.beneficiary-card').length >= max) return;
+  const card = document.createElement('div');
+  card.className = 'beneficiary-card card mb-2 p-2';
+  card.innerHTML = `
+    <input type="hidden" name="beneficiaries-${idx}-type" value="${type}">
+    <div class="row g-2">
+      <div class="col-md-5">
+        <label class="form-label">Full Name</label>
+        <input type="text" name="beneficiaries-${idx}-name" class="form-control" required>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">Document (${getParentDocType(type)})</label>
+        <input type="file" name="beneficiaries-${idx}-document" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.beneficiary-card').remove();updateCounts()">Remove</button>
+      </div>
+    </div>
+    <div class="invalid-feedback d-block mt-1"></div>
+  `;
+  container.appendChild(card);
+  updateCounts();
+}
+function getParentDocType(type) {
+  return {'child':'Birth Certificate','spouse':'Marriage Affidavit','parent_mother':'National ID Card','parent_father':'National ID Card'}[type];
+}
+function updateCounts() {
+  document.getElementById('childCount').textContent = document.querySelectorAll('#childrenContainer .beneficiary-card').length + '/5';
+  document.getElementById('spouseCount').textContent = document.querySelectorAll('#spouseContainer .beneficiary-card').length + '/1';
+  document.getElementById('motherCount').textContent = document.querySelectorAll('#motherContainer .beneficiary-card').length + '/1';
+  document.getElementById('fatherCount').textContent = document.querySelectorAll('#fatherContainer .beneficiary-card').length + '/1';
+}
+document.getElementById('claimForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const beneficiaries = [];
+  let hasDoc = false;
+  for (let [key, value] of formData.entries()) {
+    if (key.includes('document') && value) hasDoc = true;
+  }
+  if (!hasDoc) {
+    document.getElementById('formError').textContent = 'At least one beneficiary must have a document uploaded.';
+    document.getElementById('formError').classList.remove('d-none');
+    return;
+  }
+  document.getElementById('submitBtn').disabled = true;
+  const response = await fetch(form.action, { method: 'POST', body: formData });
+  if (response.ok) {
+    const data = await response.json();
+    window.location.href = `/member/bbf-claims/${data.id}/`;
+  } else {
+    const error = await response.json();
+    document.getElementById('formError').textContent = error.error || 'Submission failed';
+    document.getElementById('formError').classList.remove('d-none');
+    document.getElementById('submitBtn').disabled = false;
+  }
+});
+</script>
+{% endblock %}

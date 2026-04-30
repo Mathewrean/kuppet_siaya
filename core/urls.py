@@ -16,4 +16,5 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('news/<slug:slug>/', views.news_detail, name='news_detail'),
     path('news/', views.news_archive, name='news_archive'),
+    path('api/homepage-slider/', views.homepage_slider_api, name='homepage_slider_api'),
 ]

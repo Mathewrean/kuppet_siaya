@@ -5,49 +5,151 @@
 
 {% block content %}
 <section class="hero-section">
-    <div class="hero-slider" id="hero-slider">
-            {% for album in albums %}
-                <div class="hero-slide {% if forloop.first %}is-active{% endif %}" data-slide>
-                    <a href="{% if album.slug %}{% url 'gallery_album' album.slug %}{% else %}{% url 'gallery' %}{% endif %}" aria-label="Open {{ album.title }} album">
-                        {% if album.cover_image %}
-                            <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
-                        {% elif album.images.first %}
-                            <img src="{{ album.images.first.image.url }}" alt="{{ album.title }}">
-                        {% else %}
-                            <div class="hero-slide__placeholder">{{ album.title }}</div>
-                        {% endif %}
-                    </a>
-                </div>
-            {% empty %}
-                <div class="hero-slide is-active">
-                    <a href="{% url 'gallery' %}" aria-label="Open gallery">
-                        <div class="hero-slide__placeholder">KUPPET Siaya Gallery</div>
-                    </a>
-                </div>
-            {% endfor %}
-
-            {% if albums|length > 1 %}
-                <div class="hero-controls">
-                    <button type="button" class="hero-arrow" data-hero-prev aria-label="Previous slide">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
-                        </svg>
-                    </button>
-                    <button type="button" class="hero-arrow" data-hero-next aria-label="Next slide">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="hero-dots">
-                    {% for album in albums %}
-                        <button type="button" class="hero-dot {% if forloop.first %}is-active{% endif %}" data-hero-dot="{{ forloop.counter0 }}" aria-label="Go to slide {{ forloop.counter }}"></button>
-                    {% endfor %}
-                </div>
-            {% endif %}
-    </div>
+  <div class="hero-slider" id="hero-slider">
+    <!-- Slides injected by JavaScript from /api/homepage-slider/ -->
+  </div>
 </section>
+
+<script>
+(function() {
+  const slider = document.getElementById('hero-slider');
+  if (!slider) return;
+
+  let slides = [];
+  let currentIndex = 0;
+  let timer = null;
+  const intervalTime = 5000;
+
+  function createSlide(slide) {
+    const slideEl = document.createElement('div');
+    slideEl.className = 'hero-slide';
+    slideEl.innerHTML = `
+      <a href="/gallery/${slide.slug}/" aria-label="Open ${slide.title} album">
+        ${slide.cover_image_url 
+          ? `<img src="${slide.cover_image_url}" alt="${slide.title}">`
+          : `<div class="hero-slide__placeholder">${slide.caption}</div>`
+        }
+      </a>
+    `;
+    return slideEl;
+  }
+
+  function render() {
+    slider.innerHTML = '';
+    if (slides.length === 0) {
+      slider.innerHTML = '<div class="hero-slide is-active"><a href="/gallery/" aria-label="Open gallery"><div class="hero-slide__placeholder">KUPPET Siaya Gallery</div></a></div>';
+      return;
+    }
+    slides.forEach((s, i) => {
+      const el = createSlide(s);
+      if (i === 0) el.classList.add('is-active');
+      slider.appendChild(el);
+    });
+    // Add controls if more than 1 slide
+    if (slides.length > 1) {
+      addControls();
+    }
+  }
+
+  function addControls() {
+    // Prevent adding twice
+    if (slider.querySelector('.hero-controls')) return;
+    slider.insertAdjacentHTML('beforeend', `
+      <div class="hero-controls">
+        <button type="button" class="hero-arrow" data-hero-prev aria-label="Previous slide">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+        <button type="button" class="hero-arrow" data-hero-next aria-label="Next slide">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="hero-dots"></div>
+    `);
+    const dots = slider.querySelector('.hero-dots');
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.type = 'button';
+      dot.className = 'hero-dot' + (i === 0 ? ' is-active' : '');
+      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
+      dot.addEventListener('click', () => goTo(i));
+      dots.appendChild(dot);
+    });
+    slider.querySelector('[data-hero-prev]').addEventListener('click', prev);
+    slider.querySelector('[data-hero-next]').addEventListener('click', next);
+  }
+
+  function updateDots() {
+    const dots = slider.querySelectorAll('.hero-dot');
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('is-active', i === currentIndex);
+    });
+  }
+
+  function showSlide(index) {
+    const slideEls = slider.querySelectorAll('.hero-slide');
+    slideEls.forEach((el, i) => el.classList.toggle('is-active', i === index));
+    updateDots();
+  }
+
+  function next() {
+    currentIndex = (currentIndex + 1) % slides.length;
+    showSlide(currentIndex);
+  }
+
+  function prev() {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    showSlide(currentIndex);
+  }
+
+  function goTo(index) {
+    currentIndex = index;
+    showSlide(currentIndex);
+    resetTimer();
+  }
+
+  function resetTimer() {
+    clearInterval(timer);
+    if (slides.length > 1) {
+      timer = setInterval(next, intervalTime);
+    }
+  }
+
+  // Fetch slider data
+  fetch('/api/homepage-slider/')
+    .then(res => res.json())
+    .then(data => {
+      slides = data;
+      currentIndex = 0;
+      render();
+      resetTimer();
+    })
+    .catch(err => {
+      console.error('Slider load failed', err);
+      slides = [];
+      render();
+    });
+
+  // Pause on hover
+  slider.addEventListener('mouseenter', () => clearInterval(timer));
+  slider.addEventListener('mouseleave', resetTimer);
+})();
+</script>
+
+<style>
+.hero-section { position: relative; overflow: hidden; }
+.hero-slider { display: flex; }
+.hero-slide { flex: 0 0 100%; transition: opacity 0.5s; }
+.hero-slide img { width: 100%; height: 400px; object-fit: cover; display: block; }
+.hero-controls { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 1rem; pointer-events: none; }
+.hero-arrow { pointer-events: auto; background: rgba(0,0,0,0.3); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.hero-dots { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; }
+.hero-dot { width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; }
+.hero-dot.is-active { background: white; }
+</style>
 
 <section class="section-shell bg-white">
     <div class="page-shell">

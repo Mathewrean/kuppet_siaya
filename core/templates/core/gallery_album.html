@@ -1,0 +1,141 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% block title %}{{ album.title }}{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <nav class="mb-4">
+    <a href="{% url 'gallery' %}" class="text-decoration-none">
+      <i class="bi bi-arrow-left"></i> Back to Gallery
+    </a>
+  </nav>
+
+  <div class="row mb-4">
+    <div class="col-lg-8">
+      <h1 class="display-5 mb-3">{{ album.title }}</h1>
+      {% if album.description %}
+        <p class="lead text-muted">{{ album.description }}</p>
+      {% endif %}
+    </div>
+    <div class="col-lg-4 text-lg-end">
+      <span class="badge bg-primary fs-6 py-2">{{ album.images.count }} images</span>
+    </div>
+  </div>
+
+  <!-- Image Grid -->
+  <div class="row g-3" id="image-grid">
+    {% for image in images %}
+    <div class="col-6 col-md-4 col-lg-3">
+      <div class="gallery-item">
+        <img src="{{ image.image.url }}" 
+             alt="{{ image.caption|default:album.title }}" 
+             class="img-fluid rounded shadow-sm gallery-thumb"
+             data-full="{{ image.image.url }}"
+             data-caption="{{ image.caption|default:album.title }}"
+             style="cursor: pointer; object-fit: cover; height: 200px; width: 100%;">
+        {% if image.caption %}
+          <div class="mt-2 small text-muted text-truncate">{{ image.caption }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">No images in this album yet.</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="modal fade" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-body p-0 position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="d-flex justify-content-center align-items-center" style="min-height: 70vh;">
+          <img id="lightbox-img" src="" alt="" class="img-fluid" style="max-height: 80vh; object-fit: contain;">
+        </div>
+        <div class="text-center text-white py-3">
+          <div id="lightbox-caption" class="h5 mb-1"></div>
+          <div id="lightbox-counter" class="text-muted"></div>
+        </div>
+        <button id="lightbox-prev" class="btn btn-outline-light position-absolute top-50 start-0 translate-middle-y ms-3" aria-label="Previous image">
+          <i class="bi bi-chevron-left fs-1"></i>
+        </button>
+        <button id="lightbox-next" class="btn btn-outline-light position-absolute top-50 end-0 translate-middle-y me-3" aria-label="Next image">
+          <i class="bi bi-chevron-right fs-1"></i>
+        </button>
+      </div>
+      <div class="modal-footer border-top-0 justify-content-center">
+        <a href="#" id="lightbox-download" class="btn btn-outline-light" download>
+          <i class="bi bi-download"></i> Download
+        </a>
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const grid = document.getElementById('image-grid');
+  if (!grid) return;
+  const thumbs = grid.querySelectorAll('.gallery-thumb');
+  if (thumbs.length === 0) return;
+
+  const lightbox = new bootstrap.Modal(document.getElementById('lightbox'));
+  const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+  const lightboxCounter = document.getElementById('lightbox-counter');
+  const lightboxPrev = document.getElementById('lightbox-prev');
+  const lightboxNext = document.getElementById('lightbox-next');
+  const lightboxDownload = document.getElementById('lightbox-download');
+
+  let currentIndex = 0;
+  const images = Array.from(thumbs).map(t => ({
+    src: t.dataset.full,
+    caption: t.dataset.caption || ''
+  }));
+
+  function showImage(index) {
+    if (index < 0) index = images.length - 1;
+    if (index >= images.length) index = 0;
+    currentIndex = index;
+    const img = images[currentIndex];
+    lightboxImg.src = img.src;
+    lightboxCaption.textContent = img.caption;
+    lightboxCounter.textContent = `Image ${currentIndex + 1} of ${images.length}`;
+    lightboxDownload.href = img.src;
+    lightboxDownload.download = img.caption.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.jpg';
+  }
+
+  thumbs.forEach((thumb, index) => {
+    thumb.addEventListener('click', () => {
+      currentIndex = index;
+      showImage(currentIndex);
+      lightbox.show();
+    });
+  });
+
+  lightboxPrev.addEventListener('click', () => {
+    showImage(currentIndex - 1);
+  });
+
+  lightboxNext.addEventListener('click', () => {
+    showImage(currentIndex + 1);
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (!lightbox._isShown) return;
+    if (e.key === 'ArrowLeft') showImage(currentIndex - 1);
+    if (e.key === 'ArrowRight') showImage(currentIndex + 1);
+    if (e.key === 'Escape') lightbox.hide();
+  });
+})();
+</script>
+
+<style>
+.gallery-item { transition: transform 0.2s; }
+.gallery-item:hover { transform: scale(1.02); }
+</style>
+{% endblock %}
