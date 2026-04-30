@@ -83,6 +83,10 @@ class CustomUser(AbstractUser):
     # For TOTP (Two-Factor Authentication)
     totp_secret = models.CharField(max_length=16, blank=True)
     totp_enabled = models.BooleanField(default=False)
+    
+    # Role fields for BBF workflow
+    is_subcounty_rep = models.BooleanField(default=False)
+    is_county_rep = models.BooleanField(default=False)
 
     # Usernames are not suitable for this context, use email or TSC number
     username = None
@@ -140,3 +144,28 @@ class LegacyTeacher(models.Model):
 
     def __str__(self):
         return f"{self.full_name} ({self.tsc_number})"
+
+
+class Notification(models.Model):
+    """Notification model for BBF claim status updates"""
+    user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='notifications'
+    )
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Link to BBF claim if applicable
+    bbf_claim = models.ForeignKey(
+        'bbf.BBFClaim',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notifications'
+    )
+    
+    def __str__(self):
+        return f"{self.title} - {self.user.get_full_name()}"

@@ -25,6 +25,7 @@ urlpatterns = [
     path('', include('core.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
+    path('api/bbf/', include('bbf.urls')),
 ]
 
 if settings.DEBUG:

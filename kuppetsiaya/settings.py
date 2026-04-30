@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'django_otp',
     'django_otp.plugins.otp_totp',
     'django_otp.plugins.otp_email',
+    'rest_framework',
     'theme',
     
     # Project apps
