@@ -139,13 +139,11 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        # Set member and initial status
+        # Set member and initial status before saving
         form.instance.member = self.request.user
         form.instance.status = 'pending'
         form.instance.submitted_at = timezone.now()
-        response = super().form_valid(form)
-        messages.warning(self.request, "Claim created. Use the API endpoints to add beneficiaries.")
-        return response
+        return super().form_valid(form)
 
 
 # =============================================================================
@@ -210,42 +208,3 @@ class CountyClaimReviewView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         return BBFClaim.objects.filter(status='awaiting_county')
-
-
-# =============================================================================
-# BBF Claims - Member Views
-# =============================================================================
-
-class BBFClaimsListView(LoginRequiredMixin, ListView):
-    template_name = "dashboard/bbf_claims_list.html"
-    login_url = reverse_lazy("login")
-    context_object_name = "claims"
-
-    def get_queryset(self):
-        return BBFClaim.objects.filter(member=self.request.user).order_by("-submitted_at")
-
-
-class BBFClaimDetailView(LoginRequiredMixin, DetailView):
-    template_name = "dashboard/bbf_claim_detail.html"
-    login_url = reverse_lazy("login")
-    model = BBFClaim
-
-    def get_queryset(self):
-        return BBFClaim.objects.filter(member=self.request.user)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
-        return context
-
-
-class BBFClaimCreateView(LoginRequiredMixin, CreateView):
-    template_name = "dashboard/bbf_claim_new.html"
-    login_url = reverse_lazy("login")
-    model = BBFClaim
-    fields = []
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
-        return context
