@@ -247,92 +247,100 @@ def ingest_members(csv_path):
     school_cache = {}  # school_key -> School
     
     # Batch processing
-    BATCH_SIZE = 100
+    CHUNK_SIZE = 400
     users_to_create = []
     schools_to_create = []
-    
-    for i, row in enumerate(rows, 1):
-        tsc_number = row.get('reg_number', '').strip()
-        officer_name = row.get('officer_name', '').strip()
-        work_subcounty_raw = row.get('work_subcounty', '').strip()
-        station_name = row.get('station_name', '').strip()
-        contact = row.get('contact', '').strip()
-        temp_password = row.get('temporary_password', '').strip()
-        
-        if i % 500 == 0:
-            print(f"  ...processed {i}/{len(rows)} rows ({len(users_to_create)} queued)...")
-        
-        # Validation
-        if not validate_tsc(tsc_number):
+    school_cache = {}
+    existing_tscs = set(CustomUser.objects.values_list('tsc_number', flat=True))
+
+    total = len(rows)
+    for idx, row in enumerate(rows, 1):
+        tsc_number = (row.get('reg_number') or '').strip()
+        if not tsc_number:
             stats['failed'] += 1
-            stats['errors']['invalid_tsc'].append(tsc_number)
+            stats['errors']['missing_tsc'].append(str(idx))
             continue
-        
+
         if tsc_number in existing_tscs:
             stats['skipped_duplicate'] += 1
+            existing_tscs.add(tsc_number)
             continue
-        
-        first_name, last_name = parse_name(officer_name)
-        if not first_name and not last_name:
-            stats['failed'] += 1
-            stats['errors']['name_parse'].append(tsc_number)
-            continue
-        
-        subcounty_normalized = normalize_subcounty(work_subcounty_raw)
-        if not subcounty_normalized or subcounty_normalized.lower() not in existing_subcounties:
-            stats['failed'] += 1
-            stats['errors']['invalid_subcounty'].append(f"{tsc_number} ({work_subcounty_raw})")
-            continue
-        
-        subcounty = existing_subcounties[subcounty_normalized.lower()]
-        
-        # Handle school
-        school_name = extract_school_name(station_name, subcounty_normalized)
-        school_key = f"{school_name}_{subcounty.id}"
-        if school_key not in school_cache:
-            school = School(name=school_name, sub_county=subcounty)
-            school_cache[school_key] = school
-            schools_to_create.append(school)
-            school_cache[school_key] = school
-        
-        # Create user
-        phone = clean_phone(contact) if contact else ''
+
+        officer_name = (row.get('officer_name') or '').strip()
+        parts = officer_name.split()
+        first_name = parts[0] if parts else ''
+        last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+
+        work_subcounty_raw = (row.get('work_subcounty') or '').strip()
+        station_name = (row.get('station_name') or '').strip()
+        contact = (row.get('contact') or '').strip()
+        temp_password = (row.get('temporary_password') or '').strip()
+
+        subcounty_normalized = ''
+        subcounty_id = None
+        if work_subcounty_raw:
+            key = work_subcounty_raw.lower()
+            for sc in existing_subcounties.values():
+                if key == sc.name.lower():
+                    subcounty_normalized = sc.name
+                    subcounty_id = sc.id
+                    break
+        if not subcounty_normalized:
+            subcounty_normalized = 'UNKNOWN'
+            if existing_subcounties:
+                first_sc = next(iter(existing_subcounties.values()))
+                subcounty_normalized = first_sc.name
+                subcounty_id = first_sc.id
+
+        school_name = station_name or f"{subcounty_normalized} School"
+        if subcounty_id:
+            school_key = f"{school_name}_{subcounty_id}"
+            if school_key not in school_cache:
+                school = School(name=school_name[:150], sub_county_id=subcounty_id)
+                school_cache[school_key] = school
+                schools_to_create.append(school)
+
+        phone = contact if contact and contact.isdigit() else ''
         email = f"{tsc_number.lower()}@kuppetsiaya.or.ke"
-        is_active = (len(temp_password) > 0)
-        
+        is_active = bool(temp_password)
+
         user = CustomUser(
             tsc_number=tsc_number,
             email=email,
-            first_name=first_name,
-            last_name=last_name,
-            phone_number=phone,
-            sub_county=subcounty_normalized,
-            school=school_name,
+            first_name=first_name[:30],
+            last_name=last_name[:30],
+            phone_number=phone[:20],
+            sub_county=subcounty_normalized[:100],
+            school=school_name[:150],
             is_active=is_active,
             approval_status='APPROVED' if is_active else 'PENDING',
             is_staff=False,
             is_superuser=False,
         )
-        user.set_password(temp_password if temp_password else 'Kuppet@2024')
+        user.set_password(temp_password or 'Kuppet@2024')
         users_to_create.append(user)
         existing_tscs.add(tsc_number)
-        
-        # Flush batches
-        if len(schools_to_create) >= BATCH_SIZE:
-            School.objects.bulk_create(schools_to_create, ignore_conflicts=True)
-            schools_to_create = []
-        
-        if len(users_to_create) >= BATCH_SIZE:
-            User.objects.bulk_create(users_to_create)
-            stats['successful'] += len(users_to_create)
-            users_to_create = []
-    
-    # Flush remaining
+        stats['successful'] += 1
+
+        # Commit chunk
+        if idx % CHUNK_SIZE == 0 or idx == total:
+            if schools_to_create:
+                School.objects.bulk_create(schools_to_create, ignore_conflicts=True)
+                schools_to_create = []
+            if users_to_create:
+                User.objects.bulk_create(users_to_create)
+                users_to_create = []
+            print(f"  Committed up to row {idx}/{total} ({stats['successful']} users)")
+
+    print(f"  Total created: {stats['successful']} users")
+
+    # Bulk create all
     if schools_to_create:
         School.objects.bulk_create(schools_to_create, ignore_conflicts=True)
     if users_to_create:
         User.objects.bulk_create(users_to_create)
-        stats['successful'] += len(users_to_create)
+
+    print(f"  Created {len(users_to_create)} users and {len(schools_to_create)} schools.")
     
     # Print sample
     print("\n  Sample created users:")
