@@ -24,7 +24,7 @@
                     <a href="{% url 'home' %}" class="site-nav-link">Home</a>
                 </div>
 
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'about' or request.resolver_match.url_name == 'about_profile' or request.resolver_match.url_name == 'about_bec' or request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'about' or request.resolver_match.url_name == 'about_profile' or request.resolver_match.url_name == 'about_bec' or request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">
                     <a href="{% url 'about' %}" class="site-nav-link">About</a>
                     <div class="site-dropdown">
                         <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">KUPPET Siaya</a>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
 
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'projects_bbf' or request.resolver_match.url_name == 'projects_bus' or request.resolver_match.url_name == 'projects_center' %}is-active{% endif %}">
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'projects' or request.resolver_match.url_name == 'projects_bbf' or request.resolver_match.url_name == 'projects_bus' or request.resolver_match.url_name == 'projects_center' %}is-active{% endif %}">
                     <a href="{% url 'projects' %}" class="site-nav-link">Projects</a>
                     <div class="site-dropdown">
                         <a href="{% url 'projects' %}" class="{% if request.resolver_match.url_name == 'projects' %}is-active{% endif %}">Overview</a>
@@ -44,31 +44,39 @@
                     </div>
                 </div>
 
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">
                     <a href="{% url 'news_archive' %}" class="site-nav-link">News</a>
                 </div>
 
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">
                     <a href="{% url 'gallery' %}" class="site-nav-link">Gallery</a>
                 </div>
 
-                {% if user.is_authenticated %}
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'bbf_claims' %}is-active{% endif %}">
-                    <a href="{% url 'bbf_claims' %}" class="site-nav-link">BBF Claims</a>
-                </div>
-                {% endif %}
+                {% comment %}Member-only BBF Claims link removed to match exact nav spec; Dashboard will appear after Contacts for logged-in users.{% endcomment %}
 
-                <div class="site-nav-item {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">
-                    <a href="{% url 'contact' %}" class="site-nav-link">Contacts</a>
-                </div>
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">
+                        <a href="{% url 'contact' %}" class="site-nav-link">Contacts</a>
+                    </div>
+
+                    {% if user.is_authenticated %}
+                    <div class="site-nav-item {% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+                        <a href="{% url 'dashboard' %}" class="site-nav-link">Dashboard</a>
+                    </div>
+                    {% endif %}
             </nav>
 
             <div class="site-header__actions">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-primary header-auth-btn">Login</a>
+                {% endif %}
                 {% if user.is_authenticated %}
-                    <span class="member-meta">{{ user.get_full_name|default:user.tsc_number }}</span>
-                    <a href="{% url 'dashboard' %}" class="btn btn-accent header-auth-btn">Dashboard</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn btn-outline header-auth-btn">Member Login</a>
+                    <div class="member-menu">
+                        <button type="button" class="member-name-toggle">{{ user.get_full_name|default:user.tsc_number }}</button>
+                        <div class="member-menu-dropdown">
+                            <a href="{% url 'profile' %}">Profile</a>
+                            <a href="{% url 'logout' %}">Logout</a>
+                        </div>
+                    </div>
                 {% endif %}
 
                 <button type="button" class="mobile-menu-toggle" data-mobile-nav-open aria-label="Open menu" aria-expanded="false" aria-controls="mobile-drawer">
@@ -99,11 +107,11 @@
                     <span>About</span>
                     <span>+</span>
                 </button>
-                <div class="mobile-subnav">
-                    <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">Overview</a>
-                    <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Branch Profile</a>
-                    <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC</a>
-                    <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC</a>
+                    <div class="mobile-subnav">
+                    <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">Kuppet Siaya</a>
+                    <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Profile</a>
+                    <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC — Branch Executive Committee</a>
+                    <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC — Branch Governing Council</a>
                 </div>
             </div>
 
@@ -122,10 +130,7 @@
 
             <a href="{% url 'news_archive' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">News</a>
             <a href="{% url 'gallery' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">Gallery</a>
-            {% if user.is_authenticated %}
-            <a href="{% url 'bbf_claims' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'bbf_claims' %}is-active{% endif %}">BBF Claims</a>
-            {% endif %}
-            <a href="{% url 'contact' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">Contact</a>
+            <a href="{% url 'contact' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">Contacts</a>
 
             <div class="px-6 py-5">
                 {% if user.is_authenticated %}
