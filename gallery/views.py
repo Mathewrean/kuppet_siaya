@@ -76,8 +76,18 @@ class AdminAlbumViewSet(viewsets.ModelViewSet):
         album = self.get_object()
         files = request.FILES.getlist('images')
         created = []
+        # validation
+        allowed_types = ['image/jpeg', 'image/png', 'image/webp']
+        max_size = 5 * 1024 * 1024
+        base_index = album.images.count()
         for idx, f in enumerate(files):
-            img = GalleryImage(album=album, image=f, order=album.images.count()+idx)
+            # basic validation using content_type and size
+            ct = getattr(f, 'content_type', '')
+            if ct not in allowed_types:
+                return Response({'error': 'Invalid file type'}, status=status.HTTP_400_BAD_REQUEST)
+            if f.size > max_size:
+                return Response({'error': 'File too large'}, status=status.HTTP_400_BAD_REQUEST)
+            img = GalleryImage(album=album, image=f, order=base_index + idx)
             img.save()
             created.append(img)
         serializer = GalleryImageSerializer(created, many=True)
@@ -101,6 +111,19 @@ class AdminAlbumViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             for idx, img_id in enumerate(order):
                 GalleryImage.objects.filter(pk=img_id, album=album).update(order=idx)
+        return Response({'ok': True})
+
+    @action(detail=False, methods=['post'])
+    def slider_reorder(self, request):
+        """Reorder albums that are on the homepage slider.
+        Expects JSON: {"order": [album_id1, album_id2, ...]}
+        """
+        order = request.data.get('order') or []
+        if not isinstance(order, list):
+            return Response({'error': 'Order must be a list of album ids'}, status=400)
+        with transaction.atomic():
+            for idx, album_id in enumerate(order):
+                GalleryAlbum.objects.filter(pk=album_id, show_on_homepage_slider=True).update(homepage_slider_order=idx)
         return Response({'ok': True})
 
 

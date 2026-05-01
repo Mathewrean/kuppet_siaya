@@ -1,0 +1,127 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Homepage Slider Management{% endblock %}
+
+{% block content %}
+<h1>Homepage Slider</h1>
+<p>Drag to reorder slides, remove slides, or add published albums to the slider.</p>
+
+<div id="slider-app">
+  <div>
+    <button id="refresh-btn" class="button">Refresh</button>
+    <button id="add-btn" class="button">Add Album to Slider</button>
+  </div>
+  <ul id="slider-list" style="list-style:none;padding:0;margin:1rem 0;">
+    <li class="empty">Loading…</li>
+  </ul>
+</div>
+
+<div id="add-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:1rem;max-width:700px;margin:auto;border-radius:6px;">
+    <h3>Add album to slider</h3>
+    <input id="search" placeholder="Search albums" style="width:100%;padding:0.5rem;margin-bottom:0.5rem;">
+    <div id="results" style="max-height:300px;overflow:auto;"></div>
+    <div style="text-align:right;margin-top:0.5rem;"><button id="add-close">Close</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const listEl = document.getElementById('slider-list');
+  const refreshBtn = document.getElementById('refresh-btn');
+  const addBtn = document.getElementById('add-btn');
+  const addModal = document.getElementById('add-modal');
+  const results = document.getElementById('results');
+  const search = document.getElementById('search');
+  const addClose = document.getElementById('add-close');
+
+  async function fetchSlider(){
+    const res = await fetch('/api/gallery/homepage-slider/');
+    const data = await res.json();
+    renderList(data);
+  }
+
+  function renderList(items){
+    listEl.innerHTML = '';
+    items.forEach((it, idx)=>{
+      const li = document.createElement('li');
+      li.draggable = true;
+      li.dataset.id = it.id;
+      li.style.padding='0.6rem';
+      li.style.border='1px solid #ddd';
+      li.style.marginBottom='0.5rem';
+      li.innerHTML = `<img src="${it.cover_image_url||''}" style="height:48px;margin-right:8px;vertical-align:middle;"> <strong>${it.album_name}</strong> <span style="color:#666;margin-left:8px;">${it.slider_caption||''}</span> <button data-remove style="float:right;">Remove</button>`;
+      listEl.appendChild(li);
+    });
+    attachDragHandlers();
+  }
+
+  function attachDragHandlers(){
+    let dragged = null;
+    listEl.querySelectorAll('li').forEach(li=>{
+      li.addEventListener('dragstart', e=>{ dragged = li; li.style.opacity=0.5; });
+      li.addEventListener('dragend', e=>{ dragged.style.opacity=''; dragged=null; saveOrder(); });
+      li.addEventListener('dragover', e=>{ e.preventDefault(); });
+      li.addEventListener('drop', e=>{ e.preventDefault(); if(dragged && dragged!==li){ listEl.insertBefore(dragged, li.nextSibling); } });
+      li.querySelector('[data-remove]')?.addEventListener('click', async (ev)=>{
+        const id = li.dataset.id;
+        await fetch(`/api/gallery/admin/albums/${id}/`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({show_on_homepage_slider:false, homepage_slider_order:null})});
+        fetchSlider();
+      });
+    });
+  }
+
+  async function saveOrder(){
+    const ids = Array.from(listEl.querySelectorAll('li')).map(li=>parseInt(li.dataset.id));
+    if(!ids.length) return;
+    await fetch('/api/gallery/admin/albums/slider_reorder/', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({order:ids})});
+    // refresh
+    fetchSlider();
+  }
+
+  refreshBtn.addEventListener('click', fetchSlider);
+  addBtn.addEventListener('click', async ()=>{
+    addModal.style.display='flex';
+    results.innerHTML='Loading...';
+    const res = await fetch('/api/gallery/admin/albums/');
+    const data = await res.json();
+    // filter published and not already on slider
+    const sliderRes = await fetch('/api/gallery/homepage-slider/');
+    const slider = (await sliderRes.json()).map(s=>s.id);
+    const candidates = data.filter(a=>a.is_published && !slider.includes(a.id));
+    renderCandidates(candidates);
+  });
+
+  function renderCandidates(list){
+    results.innerHTML='';
+    list.forEach(a=>{
+      const div = document.createElement('div');
+      div.style.padding='0.4rem';
+      div.style.borderBottom='1px solid #eee';
+      div.innerHTML = `<strong>${a.name}</strong> <button data-add style="float:right;">Add</button>`;
+      results.appendChild(div);
+      div.querySelector('[data-add]').addEventListener('click', async ()=>{
+        // set show_on_homepage_slider true and assign next order
+        // fetch current slider to determine next index
+        const cur = await (await fetch('/api/gallery/homepage-slider/')).json();
+        const next = cur.length;
+        await fetch(`/api/gallery/admin/albums/${a.id}/`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({show_on_homepage_slider:true, homepage_slider_order:next})});
+        fetchSlider();
+        addModal.style.display='none';
+      });
+    });
+  }
+
+  addClose.addEventListener('click', ()=> addModal.style.display='none');
+  search.addEventListener('input', ()=>{
+    const q = search.value.toLowerCase();
+    Array.from(results.children).forEach(div=>{ div.style.display = div.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+  });
+
+  // initial load
+  fetchSlider();
+})();
+</script>
+
+{% endblock %}
