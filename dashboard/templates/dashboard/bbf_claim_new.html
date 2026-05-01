@@ -54,11 +54,16 @@
           </div>
         </div>
         <div class="alert alert-danger d-none" id="formError"></div>
-        <button type="submit" class="btn btn-primary" id="submitBtn">Submit Claim</button>
+        <div class="d-flex gap-3">
+          <button type="submit" class="btn btn-primary" id="submitBtn">Submit Claim</button>
+          <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Cancel</a>
+        </div>
       </form>
     </div>
   </div>
 </div>
+</div>
+
 <script>
 let childIdx = 0, spouseIdx = 0, motherIdx = 0, fatherIdx = 0;
 function addBeneficiary(type) {

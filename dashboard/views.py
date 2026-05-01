@@ -171,8 +171,9 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                     if idx not in beneficiaries_data:
                         beneficiaries_data[idx] = {}
                     beneficiaries_data[idx][field] = value
-        # Handle file uploads
-        for key, file in request.FILES.items():
+        
+        # Handle file uploads - Django stores uploaded files in request.FILES
+        for key, uploaded_file in request.FILES.items():
             if key.startswith('beneficiaries-'):
                 parts = key.split('-')
                 if len(parts) == 3:
@@ -183,7 +184,7 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                         field = 'full_name'
                     if idx not in beneficiaries_data:
                         beneficiaries_data[idx] = {}
-                    beneficiaries_data[idx][field] = file
+                    beneficiaries_data[idx][field] = uploaded_file
         
         # Convert to list sorted by index
         sorted_indices = sorted(beneficiaries_data.keys(), key=int)
@@ -192,6 +193,12 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         from django.contrib import messages
         
         if not beneficiaries_list:
+            messages.error(request, 'At least one beneficiary must have a document uploaded.')
+            return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
+        
+        # Check if any beneficiary has a document uploaded
+        has_document = any('document' in ben and ben['document'] for ben in beneficiaries_list)
+        if not has_document:
             messages.error(request, 'At least one beneficiary must have a document uploaded.')
             return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
         
@@ -209,9 +216,9 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                 context={'claim': claim}
             )
             try:
-                serializer.is_valid(raise_exception=True)
-                beneficiary = serializer.save()
-                created_beneficiaries.append(beneficiary)
+                if serializer.is_valid(raise_exception=True):
+                    beneficiary = serializer.save()
+                    created_beneficiaries.append(beneficiary)
             except Exception as e:
                 errors.append(str(e))
         
