@@ -266,19 +266,11 @@
       }
 
       section.hidden = false;
-      track.innerHTML = slides.map((slide, index) => `
-        <a
-          href="/gallery/${slide.album_slug}/"
-          class="hero-slide-link${index === 0 ? " is-active" : ""}"
-          aria-label="Open ${slide.album_name} album"
-        >
-          <img src="${slide.cover_image_url}" alt="${slide.album_name}">
-          <span class="hero-slide-overlay">
-            <span class="hero-slide-caption">${slide.slider_caption || slide.album_name}</span>
-            <span class="hero-slide-button">View Album &rarr;</span>
-          </span>
-        </a>
-      `).join("");
+      track.innerHTML = slides.map((slide, index) => {
+        const fallback = `/static/theme/images/gallery_placeholders/kuppet-${(index % 3) + 1}.svg`;
+        const cover = slide.cover_image_url || fallback;
+        return `\n        <a\n          href="/gallery/${slide.album_slug}/"\n          class="hero-slide-link${index === 0 ? " is-active" : ""}"\n          aria-label="Open ${slide.album_name} album"\n        >\n          <img src="${cover}" alt="${slide.album_name}">\n          <span class="hero-slide-overlay">\n            <span class="hero-slide-caption">${slide.slider_caption || slide.album_name}</span>\n            <span class="hero-slide-button">View Album &rarr;</span>\n          </span>\n        </a>\n      `;
+      }).join("");
 
       const hasMultipleSlides = slides.length > 1;
       prevButton.hidden = !hasMultipleSlides;
