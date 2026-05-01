@@ -1,0 +1,362 @@
+[
+  {
+    "model": "core.becmember",
+    "pk": 1,
+    "fields": {
+      "name": "Richard Agot",
+      "title": "Executive Secretary",
+      "order": 1
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 2,
+    "fields": {
+      "name": "John Katoni",
+      "title": "Chairman",
+      "order": 2
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 3,
+    "fields": {
+      "name": "Dorothy Omilo",
+      "title": "Treasurer",
+      "order": 3
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 4,
+    "fields": {
+      "name": "Moses Nduri",
+      "title": "Vice Chairman",
+      "order": 4
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 5,
+    "fields": {
+      "name": "Christine Kodeyo",
+      "title": "Assistant ES",
+      "order": 5
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 6,
+    "fields": {
+      "name": "Aloice Omondi",
+      "title": "Assistant Treasurer",
+      "order": 6
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 7,
+    "fields": {
+      "name": "Nicholas Osir",
+      "title": "Organising Secretary",
+      "order": 7
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 8,
+    "fields": {
+      "name": "Erick Diang'a",
+      "title": "Secretary Secondary",
+      "order": 8
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 9,
+    "fields": {
+      "name": "Bernard Amollo",
+      "title": "Secretary Tertiary",
+      "order": 9
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 10,
+    "fields": {
+      "name": "Simon Otieno",
+      "title": "Secretary JSS",
+      "order": 10
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 11,
+    "fields": {
+      "name": "Winnie Atieno",
+      "title": "Secretary Gender",
+      "order": 11
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 12,
+    "fields": {
+      "name": "Anne Omeno",
+      "title": "Secretary Gender 1",
+      "order": 12
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 13,
+    "fields": {
+      "name": "Collins Kira",
+      "title": "Secretary Gender 2",
+      "order": 13
+    }
+  },
+  {
+    "model": "core.becmember",
+    "pk": 14,
+    "fields": {
+      "name": "Elizabeth Okwiri",
+      "title": "Secretary Gender 3",
+      "order": 14
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 1,
+    "fields": {
+      "name": "Moses Adinda Odindo",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 1
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 2,
+    "fields": {
+      "name": "Mercy Aoko Ojoga",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 2
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 3,
+    "fields": {
+      "name": "Oduor Oketch",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 3
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 4,
+    "fields": {
+      "name": "George Agik",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 4
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 5,
+    "fields": {
+      "name": "Charles Ger",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 5
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 6,
+    "fields": {
+      "name": "Dr. Dorah Oula",
+      "title": "Communication, Publicity & Data Committee",
+      "order": 6
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 7,
+    "fields": {
+      "name": "Teddy Omondi",
+      "title": "Co-Curriculum Committee",
+      "order": 7
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 8,
+    "fields": {
+      "name": "Naomi Ruth Kabibi",
+      "title": "Co-Curriculum Committee",
+      "order": 8
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 9,
+    "fields": {
+      "name": "Lord Obwolo",
+      "title": "Co-Curriculum Committee",
+      "order": 9
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 10,
+    "fields": {
+      "name": "Verdice Jakomala",
+      "title": "Co-Curriculum Committee",
+      "order": 10
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 11,
+    "fields": {
+      "name": "James Ashuma",
+      "title": "Co-Curriculum Committee",
+      "order": 11
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 12,
+    "fields": {
+      "name": "Irene Kathure",
+      "title": "Co-Curriculum Committee",
+      "order": 12
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 13,
+    "fields": {
+      "name": "Franklin Warambo",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 13
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 14,
+    "fields": {
+      "name": "Sharon Odede",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 14
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 15,
+    "fields": {
+      "name": "Joash Ongoro",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 15
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 16,
+    "fields": {
+      "name": "Edwin Janam",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 16
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 17,
+    "fields": {
+      "name": "Lavender Otieno",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 17
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 18,
+    "fields": {
+      "name": "Clement Owino",
+      "title": "Investment & Resource Mobilization Committee",
+      "order": 18
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 19,
+    "fields": {
+      "name": "Denis Onam",
+      "title": "Social Welfare Committee",
+      "order": 19
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 20,
+    "fields": {
+      "name": "Richard Odongo",
+      "title": "Social Welfare Committee",
+      "order": 20
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 21,
+    "fields": {
+      "name": "Erick Komollo",
+      "title": "Social Welfare Committee",
+      "order": 21
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 22,
+    "fields": {
+      "name": "Dora Amondi",
+      "title": "Social Welfare Committee",
+      "order": 22
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 23,
+    "fields": {
+      "name": "Benard Juma",
+      "title": "Social Welfare Committee",
+      "order": 23
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 24,
+    "fields": {
+      "name": "Stephen Oduor",
+      "title": "Social Welfare Committee",
+      "order": 24
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 25,
+    "fields": {
+      "name": "Michael Omenyo",
+      "title": "Other Appointments",
+      "order": 25
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 26,
+    "fields": {
+      "name": "Benard Seko",
+      "title": "Other Appointments",
+      "order": 26
+    }
+  }
+]

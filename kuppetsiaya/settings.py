@@ -103,6 +103,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Session idle timeout (2 minutes = 120 seconds)
+SESSION_COOKIE_AGE = 120
+SESSION_SAVE_EVERY_REQUEST = True
+
 ROOT_URLCONF = 'kuppetsiaya.urls'
 
 TEMPLATES = [
@@ -154,6 +158,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Security settings
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False
+
+# Session idle timeout (2 minutes = 120 seconds)
+SESSION_COOKIE_AGE = 120
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

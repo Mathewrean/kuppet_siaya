@@ -84,7 +84,8 @@ def about_profile(request):
 
 
 def about_bec(request):
-    return render(request, "core/about_bec.html")
+    members = BECMember.objects.all().order_by('order')
+    return render(request, "core/about_bec.html", {"members": members})
 
 
 def about_bgc(request):
