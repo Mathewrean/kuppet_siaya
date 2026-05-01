@@ -23,7 +23,7 @@ A comprehensive web application for managing KUPPET Siaya Branch operations, inc
 - Homepage with auto-advancing gallery slider
 - Gallery with lightbox image viewer
 - Document upload and validation (PDF, JPG, PNG, DOC, DOCX)
-- File size limits: 10MB maximum
+- File size limits: 5MB maximum
 - Responsive design for all devices
 
 ## Technology Stack
@@ -372,10 +372,10 @@ Returns JSON array of slider items:
 
 | Beneficiary Type | Required Document | Format | Max Size |
 |-----------------|-------------------|---------|----------|
-| Child | Birth Certificate | PDF/JPG/PNG | 10MB |
-| Spouse | Marriage Affidavit | PDF/DOC/DOCX | 10MB |
-| Mother | National ID Card | PDF/JPG/PNG | 10MB |
-| Father | National ID Card | PDF/JPG/PNG | 10MB |
+| Child | Birth Certificate | PDF/JPG/PNG | 5MB |
+| Spouse | Marriage Affidavit | PDF/DOC/DOCX | 5MB |
+| Mother | National ID Card | PDF/JPG/PNG | 5MB |
+| Father | National ID Card | PDF/JPG/PNG | 5MB |
 
 ### Upload Process
 

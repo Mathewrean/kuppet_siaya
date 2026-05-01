@@ -28,6 +28,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('api/bbf/', include('bbf.urls')),
+    path('api/gallery/', include('gallery.urls')),
 ]
 
 if settings.DEBUG:
