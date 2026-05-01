@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 
@@ -66,7 +66,7 @@ class AdminAlbumViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     queryset = GalleryAlbum.objects.all()
     lookup_field = 'pk'
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_class(self):
         return GalleryAlbumDetailSerializer

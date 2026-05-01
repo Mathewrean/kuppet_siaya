@@ -1,0 +1,69 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+{% block title %}Manage Album{% endblock %}
+{% block content %}
+<h1 id="album-title">Manage Album</h1>
+<div>
+  <input type="file" id="upload" multiple accept="image/jpeg,image/png,image/webp">
+  <button id="upload-btn">Upload</button>
+  <div id="images" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:1rem;"></div>
+</div>
+
+<script>
+(()=>{
+  const imagesEl = document.getElementById('images');
+  const uploadInput = document.getElementById('upload');
+  const uploadBtn = document.getElementById('upload-btn');
+  const path = window.location.pathname;
+  // expect path like /admin/core/gallery/albums/<id>/manage/
+  const parts = path.split('/').filter(Boolean);
+  const idIndex = parts.indexOf('albums') + 1;
+  const albumId = parts[idIndex];
+
+  async function load(){
+    const res = await fetch(`/api/gallery/admin/albums/${albumId}/`);
+    const a = await res.json();
+    document.getElementById('album-title').textContent = `Manage: ${a.name}`;
+    const imgs = a.images || [];
+    imagesEl.innerHTML = '';
+    imgs.forEach(im=>{
+      const d = document.createElement('div'); d.style.position='relative'; d.style.border='1px solid #eee'; d.style.padding='4px';
+      d.draggable = true; d.dataset.id = im.id;
+      d.innerHTML = `<img src="${im.image}" style="width:100%;height:120px;object-fit:cover"> <div style="margin-top:4px;font-size:12px;">${im.title||''}</div> <button data-cover style="position:absolute;top:6px;left:6px;">Cover</button> <button data-del style="position:absolute;top:6px;right:6px;">Delete</button>`;
+      imagesEl.appendChild(d);
+      d.querySelector('[data-cover]').addEventListener('click', async ()=>{ await fetch(`/api/gallery/admin/albums/${albumId}/set_cover/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({image_id: im.id})}); load(); });
+      d.querySelector('[data-del]').addEventListener('click', async ()=>{ if(!confirm('Delete image?')) return; await fetch(`/api/gallery/admin/images/${im.id}/`, {method:'DELETE'}); load(); });
+    });
+    attachDrag();
+  }
+
+  function attachDrag(){
+    let dragged=null;
+    imagesEl.querySelectorAll('div').forEach(div=>{
+      div.addEventListener('dragstart', ()=>{ dragged=div; div.style.opacity=0.5; });
+      div.addEventListener('dragend', ()=>{ if(dragged){ dragged.style.opacity=''; dragged=null; saveOrder(); } });
+      div.addEventListener('dragover', e=>{ e.preventDefault(); });
+      div.addEventListener('drop', e=>{ e.preventDefault(); if(dragged && dragged!==div){ imagesEl.insertBefore(dragged, div.nextSibling); } });
+    });
+  }
+
+  async function saveOrder(){
+    const ids = Array.from(imagesEl.querySelectorAll('div')).map(d=>parseInt(d.dataset.id));
+    await fetch(`/api/gallery/admin/albums/${albumId}/reorder/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({order: ids})});
+  }
+
+  uploadBtn.addEventListener('click', async ()=>{
+    const files = uploadInput.files;
+    if(!files.length) return alert('Select files');
+    const fd = new FormData();
+    for(let f of files) fd.append('images', f);
+    const res = await fetch(`/api/gallery/admin/albums/${albumId}/images/`, {method:'POST', body: fd});
+    if(!res.ok){ alert('Upload failed'); return; }
+    load();
+  });
+
+  load();
+})();
+</script>
+
+{% endblock %}

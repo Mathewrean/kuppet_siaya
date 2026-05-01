@@ -1,0 +1,34 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+{% block title %}Gallery Albums Management{% endblock %}
+{% block content %}
+<h1>Albums</h1>
+<div style="margin-bottom:1rem;"><button id="create-album">Create Album</button> <button id="refresh">Refresh</button></div>
+<div id="albums"></div>
+
+<script>
+(()=>{
+  const container = document.getElementById('albums');
+  const refresh = document.getElementById('refresh');
+  const create = document.getElementById('create-album');
+
+  async function load(){
+    const res = await fetch('/api/gallery/admin/albums/');
+    const data = await res.json();
+    container.innerHTML = '';
+    data.forEach(a=>{
+      const card = document.createElement('div');
+      card.style.border='1px solid #eee'; card.style.padding='0.6rem'; card.style.marginBottom='0.5rem';
+      card.innerHTML = `<img src="${a.cover_image_url||''}" style="height:48px;margin-right:8px;vertical-align:middle;"> <strong>${a.name}</strong> <span style="color:#666;margin-left:8px;">${a.is_published? 'Published':'Draft'}</span> <button data-manage style="float:right;">Manage</button>`;
+      container.appendChild(card);
+      card.querySelector('[data-manage]').addEventListener('click', ()=>{ window.location = `/admin/core/gallery/albums/${a.id}/manage/`; });
+    });
+  }
+
+  refresh.addEventListener('click', load);
+  create.addEventListener('click', ()=>{ window.location = '/admin/core/gallery/albums/new/'; });
+  load();
+})();
+</script>
+
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+{% block title %}Gallery Categories Management{% endblock %}
+{% block content %}
+<h1>Categories</h1>
+<div>
+  <button id="new-cat">Add Category</button>
+</div>
+<div id="cats" style="margin-top:1rem;"></div>
+
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:1rem;border-radius:6px;max-width:500px;margin:auto;">
+    <h3 id="modal-title">New Category</h3>
+    <input id="cat-name" placeholder="Category name" style="width:100%;padding:0.5rem;margin-bottom:0.5rem;">
+    <div style="text-align:right;"><button id="modal-save">Save</button> <button id="modal-cancel">Cancel</button></div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const list = document.getElementById('cats');
+  const modal = document.getElementById('modal');
+  const newBtn = document.getElementById('new-cat');
+  const saveBtn = document.getElementById('modal-save');
+  const cancelBtn = document.getElementById('modal-cancel');
+  const nameInput = document.getElementById('cat-name');
+  let editId = null;
+
+  async function load(){
+    const res = await fetch('/api/gallery/categories/');
+    const data = await res.json();
+    list.innerHTML = '';
+    data.forEach(c=>{
+      const div = document.createElement('div');
+      div.style.padding='0.5rem';
+      div.style.borderBottom='1px solid #eee';
+      div.innerHTML = `<strong>${c.name}</strong> <span style="color:#666;">(${c.album_count} albums)</span> <button data-edit style="float:right;">Edit</button> <button data-del style="float:right;margin-right:8px;">Delete</button>`;
+      list.appendChild(div);
+      div.querySelector('[data-edit]').addEventListener('click', ()=>{ editId = c.id; nameInput.value = c.name; modal.style.display='flex'; document.getElementById('modal-title').textContent='Edit Category'; });
+      div.querySelector('[data-del]').addEventListener('click', async ()=>{ if(!confirm('Delete category?')) return; await fetch(`/api/gallery/admin/categories/${c.id}/`, {method:'DELETE'}); load(); });
+    });
+  }
+
+  newBtn.addEventListener('click', ()=>{ editId = null; nameInput.value=''; modal.style.display='flex'; document.getElementById('modal-title').textContent='New Category'; });
+  cancelBtn.addEventListener('click', ()=> modal.style.display='none');
+  saveBtn.addEventListener('click', async ()=>{
+    const name = nameInput.value.trim(); if(!name) return alert('Name required');
+    if(editId){ await fetch(`/api/gallery/admin/categories/${editId}/`, {method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})}); }
+    else { await fetch('/api/gallery/admin/categories/', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})}); }
+    modal.style.display='none'; load();
+  });
+
+  load();
+})();
+</script>
+
+{% endblock %}

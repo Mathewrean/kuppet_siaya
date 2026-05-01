@@ -11,7 +11,8 @@ User = get_user_model()
 class GalleryAPITest(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.admin = User.objects.create_superuser(username='admin', email='admin@example.com', password='pass')
+        # CustomUser requires tsc_number on creation; do not pass username
+        self.admin = User.objects.create_superuser(tsc_number='ADMIN001', email='admin@example.com', password='pass')
         self.client.force_authenticate(self.admin)
         self.cat = GalleryCategory.objects.create(name='Events')
 

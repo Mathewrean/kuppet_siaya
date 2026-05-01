@@ -38,12 +38,29 @@ def slider_management_view(request):
     return render(request, 'admin/gallery/slider_management.html')
 
 
+def categories_management_view(request):
+    return render(request, 'admin/gallery/categories_management.html')
+
+
+def albums_management_view(request):
+    return render(request, 'admin/gallery/albums_management.html')
+
+
+def album_manage_view(request, album_id):
+    return render(request, 'admin/gallery/album_manage.html')
+
+
 # append custom url to admin
 original_get_urls = django_admin.site.get_urls
 
 def get_urls():
     urls = original_get_urls()
-    my_urls = [path('core/gallery/slider/', django_admin.site.admin_view(slider_management_view), name='core_gallery_slider_management')]
+    my_urls = [
+        path('core/gallery/slider/', django_admin.site.admin_view(slider_management_view), name='core_gallery_slider_management'),
+        path('core/gallery/categories/', django_admin.site.admin_view(categories_management_view), name='core_gallery_categories_management'),
+        path('core/gallery/albums/', django_admin.site.admin_view(albums_management_view), name='core_gallery_albums_management'),
+        path('core/gallery/albums/<int:album_id>/manage/', django_admin.site.admin_view(album_manage_view), name='core_gallery_album_manage'),
+    ]
     return my_urls + urls
 
 django_admin.site.get_urls = get_urls

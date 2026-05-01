@@ -26,8 +26,9 @@ class GalleryAlbumListSerializer(serializers.ModelSerializer):
 
 
 class GalleryAlbumDetailSerializer(serializers.ModelSerializer):
-    images = GalleryImageSerializer(many=True)
-    category = serializers.CharField(source='category.name', read_only=True)
+    images = GalleryImageSerializer(many=True, read_only=True)
+    # allow writing by pk for category
+    category = serializers.PrimaryKeyRelatedField(queryset=GalleryCategory.objects.all(), allow_null=True, required=False)
 
     class Meta:
         model = GalleryAlbum

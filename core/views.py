@@ -196,23 +196,24 @@ def contact(request):
 
 @require_GET
 def homepage_slider_api(request):
-    albums = GalleryAlbum.objects.filter(
+    albums = GalleryAlbumModel.objects.filter(
         is_published=True,
         show_on_homepage_slider=True,
-    ).exclude(
-        cover_image=""
-    ).exclude(
-        cover_image__isnull=True
-    ).order_by("slider_order", "title")
-    data = [
-        {
-            "id": album.id,
-            "album_name": album.title,
-            "album_slug": album.slug,
-            "cover_image_url": album.cover_image.url if album.cover_image else None,
-            "slider_caption": album.effective_slider_caption,
-            "slider_order": album.slider_order,
-        }
-        for album in albums
-    ]
+    ).order_by('homepage_slider_order')
+    data = []
+    for album in albums:
+        cover = None
+        if getattr(album, 'cover_image', None) and getattr(album.cover_image, 'image', None):
+            cover = album.cover_image.image.url
+        else:
+            first = album.images.order_by('order', 'uploaded_at').first()
+            cover = first.image.url if first else None
+        data.append({
+            'id': album.id,
+            'album_name': getattr(album, 'name', None) or getattr(album, 'title', ''),
+            'album_slug': album.slug,
+            'cover_image_url': cover,
+            'slider_caption': album.homepage_slider_caption or (getattr(album, 'name', None) or ''),
+            'slider_order': album.homepage_slider_order,
+        })
     return JsonResponse(data, safe=False)
