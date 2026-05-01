@@ -64,10 +64,32 @@ let childIdx = 0, spouseIdx = 0, motherIdx = 0, fatherIdx = 0;
 function addBeneficiary(type) {
   let container, countEl, max, idx;
   switch(type) {
-    case 'child': container = document.getElementById('childrenContainer'); countEl = document.getElementById('childCount'); max = 5; idx = childIdx++; break;
-    case 'spouse': container = document.getElementById('spouseContainer'); countEl = document.getElementById('spouseCount'); max = 1; idx = spouseIdx++; break;
-    case 'parent_mother': container = document.getElementById('motherContainer'); countEl = document.getElementById('motherCount'); max = 1; idx = motherIdx++; break;
-    case 'parent_father': container = document.getElementById('fatherContainer'); countEl = document.getElementById('fatherCount'); max = 1; idx = fatherIdx++; break;
+    case 'child':
+      container = document.getElementById('childrenContainer');
+      countEl = document.getElementById('childCount');
+      max = 5;
+      idx = childIdx++;
+      break;
+    case 'spouse':
+      container = document.getElementById('spouseContainer');
+      countEl = document.getElementById('spouseCount');
+      max = 1;
+      idx = spouseIdx++;
+      break;
+    case 'parent_mother':
+      container = document.getElementById('motherContainer');
+      countEl = document.getElementById('motherCount');
+      max = 1;
+      idx = motherIdx++;
+      break;
+    case 'parent_father':
+      container = document.getElementById('fatherContainer');
+      countEl = document.getElementById('fatherCount');
+      max = 1;
+      idx = fatherIdx++;
+      break;
+    default:
+      return;
   }
   if (container.querySelectorAll('.beneficiary-card').length >= max) return;
   const card = document.createElement('div');
@@ -105,7 +127,6 @@ document.getElementById('claimForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
-  const beneficiaries = [];
   let hasDoc = false;
   for (let [key, value] of formData.entries()) {
     if (key.includes('document') && value) hasDoc = true;
