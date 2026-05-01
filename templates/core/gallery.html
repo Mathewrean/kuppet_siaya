@@ -11,9 +11,10 @@
         </div>
 
         {% if albums %}
-            <div class="album-grid">
+            <div class="category-filter" id="category-filter" style="margin-bottom:1rem;"></div>
+            <div class="album-grid" id="album-grid">
                 {% for album in albums %}
-                    <article class="album-card">
+                    <article class="album-card" data-album-slug="{{ album.slug }}">
                         <a href="{% if album.slug %}{% url 'gallery_album' album.slug %}{% else %}{% url 'gallery' %}{% endif %}" class="album-card__cover" aria-label="View {{ album.title }} album">
                             {% if album.cover_image %}
                                 <img src="{{ album.cover_image.url }}" alt="{{ album.title }}">
@@ -57,4 +58,68 @@
         {% endif %}
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function(){
+        const filterEl = document.getElementById('category-filter');
+        const gridEl = document.getElementById('album-grid');
+        if (!filterEl || !gridEl) return;
+
+        function renderAlbums(albums){
+            if(!albums || !albums.length){
+                gridEl.innerHTML = '<div class="empty-state"><p>No albums found in this category.</p></div>';
+                return;
+            }
+            gridEl.innerHTML = albums.map(a=>{
+                const cover = a.cover_image_url || '';
+                return `\n<article class="album-card">\n  <a href="/gallery/${a.album_slug}/" class="album-card__cover" aria-label="View ${a.album_name} album">\n    ${cover ? `<img src="${cover}" alt="${a.album_name}">` : `<div class="album-card__placeholder">Album</div>`}\n    <div class="album-card__overlay">View Album →</div>\n  </a>\n  <div class="album-card__body">\n    <h3 class="album-card__title">${a.album_name}</h3>\n    <p class="album-card__meta">${a.image_count || 0} images</p>\n  </div>\n</article>`;
+            }).join('');
+        }
+
+        async function loadCategories(){
+            try{
+                const res = await fetch('/api/gallery/categories/');
+                if(!res.ok) throw new Error('Failed');
+                const cats = await res.json();
+                const allBtn = document.createElement('button');
+                allBtn.textContent = 'All';
+                allBtn.className = 'filter-btn active';
+                allBtn.addEventListener('click', ()=>{ loadAlbums(); toggleActive(allBtn); });
+                filterEl.appendChild(allBtn);
+                cats.forEach(c=>{
+                    const btn = document.createElement('button');
+                    btn.textContent = c.name;
+                    btn.className = 'filter-btn';
+                    btn.addEventListener('click', ()=>{ loadAlbums(c.slug); toggleActive(btn); });
+                    filterEl.appendChild(btn);
+                });
+            }catch(err){
+                // silently fail — server rendered content remains
+            }
+        }
+
+        function toggleActive(activeBtn){
+            Array.from(filterEl.querySelectorAll('.filter-btn')).forEach(b=>b.classList.remove('active'));
+            activeBtn.classList.add('active');
+        }
+
+        async function loadAlbums(category){
+            try{
+                const url = category ? `/api/gallery/albums/?category=${encodeURIComponent(category)}` : '/api/gallery/albums/';
+                const res = await fetch(url);
+                if(!res.ok) throw new Error('Failed');
+                const albums = await res.json();
+                renderAlbums(albums);
+            }catch(err){
+                // leave server-rendered fallback
+            }
+        }
+
+        // Initialize
+        loadCategories();
+        // Clicking a category will call loadAlbums; default leave server-rendered content
+    })();
+</script>
 {% endblock %}
