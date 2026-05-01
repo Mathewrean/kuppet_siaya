@@ -1,0 +1,10 @@
+{% extends 'admin/base_site.html' %}
+{% block content %}
+  <h1>Run gallery seeder</h1>
+  <p>Are you sure you want to seed the gallery with sample albums and images? This will create categories, albums and image files using the placeholder images.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="default">Run Seeder</button>
+    <a href="{{ request.META.HTTP_REFERER|default:site_url }}">Cancel</a>
+  </form>
+{% endblock %}
