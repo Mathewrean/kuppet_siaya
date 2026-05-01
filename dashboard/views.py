@@ -197,7 +197,15 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
             return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
         
         # Check if any beneficiary has a document uploaded
-        has_document = any('document' in ben and ben['document'] for ben in beneficiaries_list)
+        has_document = False
+        for ben_data in beneficiaries_list:
+            if 'document' in ben_data and ben_data['document']:
+                # Check file size (max 10MB)
+                if ben_data['document'].size > 10 * 1024 * 1024:
+                    messages.error(request, f'File size exceeds 10MB limit for {ben_data.get("full_name", "beneficiary")}.')
+                    return JsonResponse({'error': f'File size exceeds 10MB limit for {ben_data.get("full_name", "beneficiary")}.'}, status=400)
+                has_document = True
+        
         if not has_document:
             messages.error(request, 'At least one beneficiary must have a document uploaded.')
             return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)

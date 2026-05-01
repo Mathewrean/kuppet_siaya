@@ -108,7 +108,8 @@ function addBeneficiary(type) {
       </div>
       <div class="col-md-5">
         <label class="form-label">Document (${getParentDocType(type)})</label>
-        <input type="file" name="beneficiaries-${idx}-document" class="form-control" required accept=".pdf,.jpg,.jpeg,.png">
+        <input type="file" name="beneficiaries-${idx}-document" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <small class="text-muted">Max file size: 10MB. Accepted formats: PDF, JPG, PNG, DOC, DOCX</small>
       </div>
       <div class="col-md-2 d-flex align-items-end">
         <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.beneficiary-card').remove();updateCounts()">Remove</button>
@@ -138,6 +139,20 @@ document.getElementById('claimForm').addEventListener('submit', async (e) => {
   }
   if (!hasDoc) {
     document.getElementById('formError').textContent = 'At least one beneficiary must have a document uploaded.';
+    document.getElementById('formError').classList.remove('d-none');
+    return;
+  }
+  
+  // Check file sizes (max 10MB)
+  let hasLargeFile = false;
+  for (let [key, value] of formData.entries()) {
+    if (key.includes('document') && value && value.size > 10 * 1024 * 1024) {
+      hasLargeFile = true;
+      break;
+    }
+  }
+  if (hasLargeFile) {
+    document.getElementById('formError').textContent = 'File size exceeds 10MB limit.';
     document.getElementById('formError').classList.remove('d-none');
     return;
   }
