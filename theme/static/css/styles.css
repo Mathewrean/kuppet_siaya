@@ -389,6 +389,12 @@ progress {
 .member-menu-dropdown a:hover, .member-menu-dropdown a:focus { background: #f3f4f6; }
 
 
+/* BGC page specific overrides to ensure consistent card look */
+.page-title { color: #0f172a; }
+.bgc-filters .filter-btn { font-weight: 500; }
+.bgc-section { margin-bottom: 1.5rem; }
+
+
 /*
 Correct the cursor style of increment and decrement buttons in Safari.
 */
