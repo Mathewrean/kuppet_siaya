@@ -182,43 +182,4 @@
     showFilter('all');
   })();
 </script>
-
-{% endblock %}
-{% extends 'base.html' %}
-
-{% block title %}Branch Governing Council - KUPPET Siaya Branch{% endblock %}
-
-{% block content %}
-<section class="section-shell section-shell--tight">
-    <div class="page-shell">
-        <div class="section-heading">
-            <span class="section-heading__eyebrow">Leadership</span>
-            <h1 class="section-heading__title">Branch Governing Council</h1>
-        </div>
-
-        {% if members %}
-            <div class="committee-grid">
-                {% for member in members %}
-                    <article class="member-card">
-                        {% if member.photo %}
-                            <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="member-card__avatar">
-                        {% else %}
-                            <div class="member-card__placeholder">{{ member.name|slice:":1" }}</div>
-                        {% endif %}
-                        <h3 class="member-card__name">{{ member.name }}</h3>
-                        <p class="member-card__title">{{ member.title }}</p>
-                    </article>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 20a8 8 0 0116 0"></path>
-                </svg>
-                <p>BGC member profiles will appear here once they are published.</p>
-            </div>
-        {% endif %}
-    </div>
-</section>
 {% endblock %}
