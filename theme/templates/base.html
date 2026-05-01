@@ -70,11 +70,14 @@
                     <a href="{% url 'login' %}" class="btn btn-primary header-auth-btn">Login</a>
                 {% endif %}
                 {% if user.is_authenticated %}
-                    <div class="member-menu">
-                        <button type="button" class="member-name-toggle">{{ user.get_full_name|default:user.tsc_number }}</button>
-                        <div class="member-menu-dropdown">
-                            <a href="{% url 'profile' %}">Profile</a>
-                            <a href="{% url 'logout' %}">Logout</a>
+                    <div class="member-menu" id="member-menu">
+                        <button type="button" id="member-name-toggle" class="member-name-toggle btn" aria-haspopup="true" aria-expanded="false">
+                            {{ user.get_full_name|default:user.tsc_number }}
+                        </button>
+                        <div class="member-menu-dropdown" id="member-menu-dropdown" role="menu" aria-labelledby="member-name-toggle">
+                            <a href="{% url 'profile' %}" role="menuitem">Profile</a>
+                            <a href="{% url 'bbf_claims' %}" role="menuitem">BBF Claims</a>
+                            <a href="{% url 'logout' %}" role="menuitem">Logout</a>
                         </div>
                     </div>
                 {% endif %}
@@ -241,6 +244,49 @@
                     toast.remove();
                 }, 4000);
             });
+
+            // Member dropdown keyboard accessibility
+            const memberToggle = document.getElementById('member-name-toggle');
+            const memberDropdown = document.getElementById('member-menu-dropdown');
+
+            function closeMemberMenu() {
+                if (!memberToggle) return;
+                memberToggle.setAttribute('aria-expanded', 'false');
+                memberDropdown && memberDropdown.classList.remove('is-open');
+            }
+
+            function openMemberMenu() {
+                if (!memberToggle) return;
+                memberToggle.setAttribute('aria-expanded', 'true');
+                memberDropdown && memberDropdown.classList.add('is-open');
+            }
+
+            if (memberToggle) {
+                memberToggle.addEventListener('click', (e) => {
+                    const expanded = memberToggle.getAttribute('aria-expanded') === 'true';
+                    if (expanded) closeMemberMenu(); else openMemberMenu();
+                });
+
+                memberToggle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const expanded = memberToggle.getAttribute('aria-expanded') === 'true';
+                        if (expanded) closeMemberMenu(); else openMemberMenu();
+                    } else if (e.key === 'Escape') {
+                        closeMemberMenu();
+                        memberToggle.focus();
+                    }
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', (ev) => {
+                    if (!memberToggle) return;
+                    const target = ev.target;
+                    if (!document.getElementById('member-menu')?.contains(target)) {
+                        closeMemberMenu();
+                    }
+                });
+            }
         }());
     </script>
     {% block extra_js %}{% endblock %}
