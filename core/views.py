@@ -5,7 +5,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
-from .models import BECMember, BGCMember, ContactMessage, GalleryAlbum, NewsPost
+from .models import BECMember, BGCMember, ContactMessage, NewsPost
+try:
+    from gallery.models import GalleryAlbum as GalleryAlbumModel
+except Exception:
+    from .models import GalleryAlbum as GalleryAlbumModel
 
 
 NEWS_CATEGORIES = [
@@ -66,7 +70,17 @@ PLACEHOLDER_GALLERY_IMAGES = [
 
 def home(request):
     news = NewsPost.objects.filter(is_published=True).order_by("-published_date")[:6]
-    albums = GalleryAlbum.objects.filter(is_published=True).prefetch_related("images")[:5]
+    albums = GalleryAlbumModel.objects.filter(is_published=True).prefetch_related("images")[:5]
+    # normalize attributes for templates that expect `title` and `cover_image.url`
+    for a in albums:
+        if not hasattr(a, 'title'):
+            a.title = getattr(a, 'name', None)
+        # make `cover_image` resemble an ImageField for templates
+        if getattr(a, 'cover_image', None):
+            try:
+                a.cover_image = a.cover_image.image
+            except Exception:
+                pass
     context = {
         "news": news,
         "albums": albums,
@@ -110,7 +124,15 @@ def projects_center(request):
 
 
 def gallery(request):
-    albums = GalleryAlbum.objects.filter(is_published=True).prefetch_related("images").all()
+    albums = GalleryAlbumModel.objects.filter(is_published=True).prefetch_related("images").all()
+    for a in albums:
+        if not hasattr(a, 'title'):
+            a.title = getattr(a, 'name', None)
+        if getattr(a, 'cover_image', None):
+            try:
+                a.cover_image = a.cover_image.image
+            except Exception:
+                pass
     return render(
         request,
         "core/gallery.html",
@@ -123,11 +145,24 @@ def gallery(request):
 
 def gallery_album(request, slug):
     album = get_object_or_404(
-        GalleryAlbum.objects.prefetch_related("images"),
+        GalleryAlbumModel.objects.prefetch_related("images"),
         slug=slug,
         is_published=True,
     )
     images = album.images.all()
+    # compatibility for templates expecting album.title and album.category as string
+    if not hasattr(album, 'title'):
+        album.title = getattr(album, 'name', None)
+    if getattr(album, 'category', None):
+        try:
+            album.category = album.category.name
+        except Exception:
+            pass
+    if getattr(album, 'cover_image', None):
+        try:
+            album.cover_image = album.cover_image.image
+        except Exception:
+            pass
     return render(
         request,
         "core/gallery_album.html",
