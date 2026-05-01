@@ -82,3 +82,8 @@ class BBFBeneficiaryCreateSerializer(serializers.ModelSerializer):
             })
         
         return data
+    
+    def create(self, validated_data):
+        # Add claim from context
+        validated_data['claim'] = self.context['claim']
+        return super().create(validated_data)

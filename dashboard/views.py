@@ -1,15 +1,16 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, render, get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.views.generic import TemplateView, ListView, DetailView, CreateView
+from django.http import HttpResponseRedirect, JsonResponse
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import BBFContribution, SupportTicket, CustomUser
 from core.models import FinancialStatement
 from bbf.models import BBFClaim, BBFBeneficiary
-from bbf.serializers import BBFClaimSerializer
+from bbf.serializers import BBFClaimSerializer, BBFBeneficiaryCreateSerializer
 import json
 
 
@@ -149,6 +150,93 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         from django.urls import reverse
         return reverse('bbf_claims')
+
+    def post(self, request, *args, **kwargs):
+        # Handle claim creation with beneficiaries via JavaScript FormData
+        # Parse beneficiaries from request.POST and request.FILES
+        # Expected format: beneficiaries-{index}-type, beneficiaries-{index}-name, beneficiaries-{index}-document
+        
+        beneficiaries_data = {}
+        for key, value in request.POST.items():
+            if key.startswith('beneficiaries-'):
+                # Extract index and field name
+                parts = key.split('-')
+                if len(parts) == 3:
+                    idx, field = parts[1], parts[2]
+                    # Map field names to serializer field names
+                    if field == 'type':
+                        field = 'beneficiary_type'
+                    elif field == 'name':
+                        field = 'full_name'
+                    if idx not in beneficiaries_data:
+                        beneficiaries_data[idx] = {}
+                    beneficiaries_data[idx][field] = value
+        # Handle file uploads
+        for key, file in request.FILES.items():
+            if key.startswith('beneficiaries-'):
+                parts = key.split('-')
+                if len(parts) == 3:
+                    idx, field = parts[1], parts[2]
+                    if field == 'type':
+                        field = 'beneficiary_type'
+                    elif field == 'name':
+                        field = 'full_name'
+                    if idx not in beneficiaries_data:
+                        beneficiaries_data[idx] = {}
+                    beneficiaries_data[idx][field] = file
+        
+        # Convert to list sorted by index
+        sorted_indices = sorted(beneficiaries_data.keys(), key=int)
+        beneficiaries_list = [beneficiaries_data[idx] for idx in sorted_indices]
+        
+        from django.contrib import messages
+        
+        if not beneficiaries_list:
+            messages.error(request, 'At least one beneficiary must have a document uploaded.')
+            return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
+        
+        # Create a claim first
+        claim = BBFClaim(member=request.user, status='pending')
+        claim.save()
+        
+        # Create beneficiaries using the serializer for validation
+        created_beneficiaries = []
+        errors = []
+        
+        for ben_data in beneficiaries_list:
+            serializer = BBFBeneficiaryCreateSerializer(
+                data=ben_data,
+                context={'claim': claim}
+            )
+            try:
+                serializer.is_valid(raise_exception=True)
+                beneficiary = serializer.save()
+                created_beneficiaries.append(beneficiary)
+            except Exception as e:
+                errors.append(str(e))
+        
+        if errors or not created_beneficiaries:
+            claim.delete()
+            for error in errors:
+                messages.error(request, error)
+            return JsonResponse({'error': errors}, status=400)
+        
+        # Update claim status to awaiting_subcounty
+        claim.status = 'awaiting_subcounty'
+        claim.save()
+        
+        # Create notification
+        from bbf.views import create_notification
+        create_notification(
+            request.user,
+            'BBF Claim Submitted',
+            f'Your BBF claim {claim.claim_reference} has been submitted.',
+            claim
+        )
+        
+        messages.success(request, f'Claim {claim.claim_reference} submitted successfully.')
+        return JsonResponse({'id': claim.id, 'redirect_url': reverse('bbf_claim_detail', kwargs={'pk': claim.id})})
+
 
 
 # =============================================================================

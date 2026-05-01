@@ -115,11 +115,33 @@ document.getElementById('claimForm').addEventListener('submit', async (e) => {
     document.getElementById('formError').classList.remove('d-none');
     return;
   }
+  // CSRF token for Django
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
   document.getElementById('submitBtn').disabled = true;
-  const response = await fetch(form.action, { method: 'POST', body: formData });
+  const response = await fetch(form.action, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-CSRFToken': csrftoken,
+    },
+  });
   if (response.ok) {
     const data = await response.json();
-    window.location.href = `/member/bbf-claims/${data.id}/`;
+    window.location.href = data.redirect_url || `/dashboard/bbf-claims/${data.id}/`;
   } else {
     const error = await response.json();
     document.getElementById('formError').textContent = error.error || 'Submission failed';
