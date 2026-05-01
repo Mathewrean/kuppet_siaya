@@ -52,6 +52,12 @@
                     <a href="{% url 'gallery' %}" class="site-nav-link">Gallery</a>
                 </div>
 
+                {% if user.is_authenticated %}
+                <div class="site-nav-item {% if request.resolver_match.url_name == 'bbf_claims' %}is-active{% endif %}">
+                    <a href="{% url 'bbf_claims' %}" class="site-nav-link">BBF Claims</a>
+                </div>
+                {% endif %}
+
                 <div class="site-nav-item {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">
                     <a href="{% url 'contact' %}" class="site-nav-link">Contacts</a>
                 </div>
@@ -116,6 +122,9 @@
 
             <a href="{% url 'news_archive' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'news_archive' or request.resolver_match.url_name == 'news_detail' %}is-active{% endif %}">News</a>
             <a href="{% url 'gallery' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'gallery' or request.resolver_match.url_name == 'gallery_album' %}is-active{% endif %}">Gallery</a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'bbf_claims' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'bbf_claims' %}is-active{% endif %}">BBF Claims</a>
+            {% endif %}
             <a href="{% url 'contact' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">Contact</a>
 
             <div class="px-6 py-5">

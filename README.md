@@ -238,6 +238,54 @@ python manage.py createsuperuser
 **URL**: `/dashboard/subcounty/dashboard/`
 
 **Features**:
+
+## API Endpoints by User Role
+
+**Unauthenticated (Public):**
+- GET `/` — Homepage (public site content and homepage slider). Authentication: None.
+- GET `/about/` — About page. Authentication: None.
+- GET `/projects/`, GET `/projects/bbf/`, GET `/projects/bus/`, GET `/projects/kuppet-center/` — Projects pages. Authentication: None.
+- GET `/gallery/` — Gallery listing. Authentication: None.
+- GET `/gallery/<slug>/` — Gallery album detail. Authentication: None.
+- GET `/news/` — News archive. Authentication: None.
+- GET `/news/<slug>/` — News detail. Authentication: None.
+- POST `/contact/` — Contact form submission. Authentication: None.
+
+**Member (Logged-in with TSC Number):**
+- Web pages:
+   - GET `/dashboard/` — Member dashboard (requires login).
+   - GET `/dashboard/bbf-claims/` — BBF claims list page.
+   - GET `/dashboard/bbf-claims/new/` — BBF claim creation page.
+   - GET `/dashboard/bbf-claims/<id>/` — BBF claim detail and document upload view.
+- API endpoints:
+   - GET `/api/bbf/claims/` — List member's BBF claims. Authentication: Member.
+   - POST `/api/bbf/claims/` — Create a new BBF claim (with beneficiaries). Authentication: Member.
+   - GET `/api/bbf/claims/<id>/` — Retrieve a single BBF claim. Authentication: Member.
+   - POST `/api/bbf/claims/<id>/add_beneficiary/` — Add a beneficiary to a pending claim. Authentication: Member.
+   - POST `/api/bbf/beneficiaries/<id>/upload_document/` — Upload or replace a beneficiary document (PDF/JPG/PNG, max 5MB). Authentication: Member (must own the claim).
+   - DELETE `/api/bbf/beneficiaries/<id>/delete/` — Remove a beneficiary from a pending claim. Authentication: Member.
+   - GET `/api/bbf/beneficiaries/` — List beneficiaries for the member's claims. Authentication: Member.
+   - GET `/dashboard/bbf-status/` — BBF Status page (web). Authentication: Member.
+
+**Sub-County Representative:**
+- GET `/api/bbf/subcounty/claims/` — List claims awaiting subcounty confirmation. Authentication: Sub-County Representative.
+- POST `/api/bbf/subcounty/claims/<id>/confirm/` — Confirm a claim (moves to awaiting county). Authentication: Sub-County Representative.
+- POST `/api/bbf/subcounty/claims/<id>/reject/` — Reject a claim at subcounty level. Authentication: Sub-County Representative.
+- POST `/api/bbf/beneficiaries/<id>/approve/` — Approve a beneficiary document. Authentication: Sub-County Representative.
+- POST `/api/bbf/beneficiaries/<id>/reject/` — Reject a beneficiary document. Authentication: Sub-County Representative.
+
+**County Representative:**
+- GET `/api/bbf/county/claims/` — List claims awaiting county confirmation. Authentication: County Representative.
+- POST `/api/bbf/county/claims/<id>/confirm/` — Approve a claim at county level. Authentication: County Representative.
+- POST `/api/bbf/county/claims/<id>/reject/` — Reject a claim at county level. Authentication: County Representative.
+- POST `/api/bbf/beneficiaries/<id>/approve/` — Approve a beneficiary document. Authentication: County Representative.
+- POST `/api/bbf/beneficiaries/<id>/reject/` — Reject a beneficiary document. Authentication: County Representative.
+
+**Administrator:**
+- Admin site `/admin/` — Full admin management (users, claims, beneficiaries, gallery, news, financial statements). Authentication: Admin.
+- API: All of the endpoints above are available to administrators; additionally, administrators can manage users and site content via the admin UI and API views as applicable.
+
+> Note: API endpoints for BBF are mounted under `/api/bbf/`.
 - List of claims awaiting review
 - Document verification tools
 - Bulk approval/rejection

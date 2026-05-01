@@ -131,6 +131,36 @@ class BBFBeneficiaryViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         return super().destroy(request, *args, **kwargs)
+
+    @action(detail=True, methods=['post'])
+    def upload_document(self, request, pk=None):
+        """Upload or replace a beneficiary document (member action)"""
+        beneficiary = self.get_object()
+
+        # Only the claim owner may upload/replace documents
+        if beneficiary.claim.member != request.user:
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        uploaded_file = request.FILES.get('document')
+        if not uploaded_file:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate file size (max 5MB) and type
+        max_size = 5 * 1024 * 1024
+        if uploaded_file.size > max_size:
+            return Response({'error': 'File size exceeds 5MB limit'}, status=status.HTTP_400_BAD_REQUEST)
+
+        allowed_types = ['application/pdf', 'image/jpeg', 'image/png']
+        content_type = uploaded_file.content_type
+        if content_type not in allowed_types:
+            return Response({'error': 'Invalid file type. Allowed: PDF, JPG, PNG'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Save file and set status to pending
+        beneficiary.document = uploaded_file
+        beneficiary.document_status = 'pending'
+        beneficiary.save()
+
+        return Response(self.get_serializer(beneficiary).data, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):

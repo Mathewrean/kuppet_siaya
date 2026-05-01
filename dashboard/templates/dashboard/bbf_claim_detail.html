@@ -47,28 +47,62 @@
         </thead>
         <tbody>
           {% for ben in object.beneficiaries.all %}
-          <tr>
-            <td>{{ ben.full_name }}</td>
-            <td>{{ ben.get_beneficiary_type_display }}</td>
+          <tr class="beneficiary-row" data-beneficiary-id="{{ ben.id }}">
             <td>
-              {% if ben.document %}
-                <a href="{{ ben.document.url }}" target="_blank">View</a>
-              {% else %}
-                <span class="text-muted">Missing</span>
-              {% endif %}
+              <div class="fw-600">{{ ben.full_name }}</div>
+              <div class="text-muted">{{ ben.get_beneficiary_type_display }}</div>
+              <div class="mt-2">
+                <strong>{{ ben.required_document_name }}</strong>
+              </div>
             </td>
-            <td>
+            <td class="align-middle" style="width:260px;">
+              <div class="document-area" data-ben-id="{{ ben.id }}">
+                {% if ben.document %}
+                  <div class="mb-2">
+                    <a href="{{ ben.document.url }}" target="_blank" class="btn btn-sm btn-outline-primary">View Document</a>
+                  </div>
+                  <div class="mb-2 status-badge">
+                    {% if ben.document_status == 'pending' %}
+                      <span class="badge bg-secondary">Uploaded and Pending Approval</span>
+                    {% elif ben.document_status == 'approved' %}
+                      <span class="badge bg-success">Approved</span>
+                    {% elif ben.document_status == 'rejected' %}
+                      <span class="badge bg-danger">Rejected</span>
+                    {% endif %}
+                  </div>
+                  {% if ben.document_status == 'rejected' %}
+                    <div class="text-danger">This document was rejected. Please upload a valid replacement.</div>
+                  {% endif %}
+                  <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary replace-btn" data-ben-id="{{ ben.id }}">Replace Document</button>
+                  </div>
+                {% else %}
+                  <div class="mb-2">
+                    <label class="form-label">Upload {{ ben.required_document_name }}</label>
+                    <input type="file" class="form-control form-control-sm doc-input" data-ben-id="{{ ben.id }}" accept=".pdf,.jpg,.jpeg,.png">
+                    <small class="form-text text-muted">Allowed: PDF, JPG, PNG — Max 5MB</small>
+                  </div>
+                  <div>
+                    <button type="button" class="btn btn-sm btn-primary upload-btn" data-ben-id="{{ ben.id }}">Upload</button>
+                    <span class="ms-2 upload-status text-muted">Not Uploaded</span>
+                  </div>
+                {% endif %}
+              </div>
+            </td>
+            <td class="align-middle">
               {% if ben.document_status == 'pending' %}
                 <span class="badge bg-secondary">Pending</span>
               {% elif ben.document_status == 'approved' %}
                 <span class="badge bg-success">Approved</span>
               {% elif ben.document_status == 'rejected' %}
                 <span class="badge bg-danger">Rejected</span>
+              {% else %}
+                <span class="text-muted">Not Uploaded</span>
               {% endif %}
             </td>
           </tr>
           {% empty %}
-          <tr><td colspan="4" class="text-center">No beneficiaries.</td></tr>
+          <tr><td colspan="4" class="text-center">No beneficiaries added yet. Add your beneficiaries to upload their required documents.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -84,4 +118,105 @@
 .step-label { font-size: 0.9rem; color: #666; }
 .step.active .step-label { color: #007bff; font-weight: 600; }
 </style>
+<script>
+(function(){
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  async function uploadDocument(benId, file, statusEl, replaceMode=false) {
+    const url = `/api/bbf/beneficiaries/${benId}/upload_document/`;
+    const csrftoken = getCookie('csrftoken');
+    const fd = new FormData();
+    fd.append('document', file);
+
+    statusEl.textContent = 'Uploading...';
+
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: fd
+      });
+      if (!resp.ok) {
+        const json = await resp.json();
+        statusEl.textContent = json.error || 'Upload failed';
+        statusEl.classList.add('text-danger');
+        return;
+      }
+      const data = await resp.json();
+      // Update the UI: replace input with view link and badge
+      const docArea = document.querySelector(`.document-area[data-ben-id='${benId}']`);
+      if (!docArea) return;
+      docArea.innerHTML = `
+        <div class="mb-2">
+          <a href="${data.document}" target="_blank" class="btn btn-sm btn-outline-primary">View Document</a>
+        </div>
+        <div class="mb-2 status-badge"><span class="badge bg-secondary">Uploaded and Pending Approval</span></div>
+        <div><button type=\"button\" class=\"btn btn-sm btn-outline-secondary replace-btn\" data-ben-id=\"${benId}\">Replace Document</button></div>
+      `;
+    } catch (err) {
+      statusEl.textContent = 'Network error';
+      statusEl.classList.add('text-danger');
+    }
+  }
+
+  document.addEventListener('click', function(e){
+    if (e.target.matches('.upload-btn')) {
+      const benId = e.target.getAttribute('data-ben-id');
+      const input = document.querySelector(`.doc-input[data-ben-id='${benId}']`);
+      const statusEl = e.target.parentElement.querySelector('.upload-status');
+      if (!input || !input.files || !input.files[0]) {
+        statusEl.textContent = 'No file selected';
+        statusEl.classList.add('text-danger');
+        return;
+      }
+      const file = input.files[0];
+      // Validate type and size (5MB)
+      const allowed = ['application/pdf','image/jpeg','image/png'];
+      if (!allowed.includes(file.type)) {
+        statusEl.textContent = 'Invalid file type';
+        statusEl.classList.add('text-danger');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        statusEl.textContent = 'File exceeds 5MB';
+        statusEl.classList.add('text-danger');
+        return;
+      }
+      statusEl.classList.remove('text-danger');
+      uploadDocument(benId, file, statusEl);
+    }
+
+    if (e.target.matches('.replace-btn')) {
+      const benId = e.target.getAttribute('data-ben-id');
+      const docArea = document.querySelector(`.document-area[data-ben-id='${benId}']`);
+      if (!docArea) return;
+      // Replace with input and upload button
+      docArea.innerHTML = `
+        <div class=\"mb-2\">
+          <label class=\"form-label\">Upload Document</label>
+          <input type=\"file\" class=\"form-control form-control-sm doc-input\" data-ben-id=\"${benId}\" accept=\".pdf,.jpg,.jpeg,.png\">
+          <small class=\"form-text text-muted\">Allowed: PDF, JPG, PNG — Max 5MB</small>
+        </div>
+        <div>
+          <button type=\"button\" class=\"btn btn-sm btn-primary upload-btn\" data-ben-id=\"${benId}\">Upload</button>
+          <span class=\"ms-2 upload-status text-muted\">Not Uploaded</span>
+        </div>
+      `;
+    }
+  });
+})();
+</script>
 {% endblock %}
