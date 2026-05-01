@@ -66,7 +66,7 @@ PLACEHOLDER_GALLERY_IMAGES = [
 
 def home(request):
     news = NewsPost.objects.filter(is_published=True).order_by("-published_date")[:6]
-    albums = GalleryAlbum.objects.prefetch_related("images").all()[:5]
+    albums = GalleryAlbum.objects.filter(is_published=True).prefetch_related("images")[:5]
     context = {
         "news": news,
         "albums": albums,
@@ -108,14 +108,33 @@ def projects_center(request):
 
 
 def gallery(request):
-    albums = GalleryAlbum.objects.prefetch_related("images").all()
-    return render(request, "core/gallery.html", {"albums": albums})
+    albums = GalleryAlbum.objects.filter(is_published=True).prefetch_related("images").all()
+    return render(
+        request,
+        "core/gallery.html",
+        {
+            "albums": albums,
+            "placeholder_albums": [] if albums else PLACEHOLDER_ALBUMS,
+        },
+    )
 
 
 def gallery_album(request, slug):
-    album = get_object_or_404(GalleryAlbum, slug=slug)
+    album = get_object_or_404(
+        GalleryAlbum.objects.prefetch_related("images"),
+        slug=slug,
+        is_published=True,
+    )
     images = album.images.all()
-    return render(request, "core/gallery_album.html", {"album": album, "images": images})
+    return render(
+        request,
+        "core/gallery_album.html",
+        {
+            "album": album,
+            "images": images,
+            "placeholder_images": [] if images else PLACEHOLDER_GALLERY_IMAGES,
+        },
+    )
 
 
 def news_detail(request, slug):
@@ -141,17 +160,21 @@ def contact(request):
 @require_GET
 def homepage_slider_api(request):
     albums = GalleryAlbum.objects.filter(
+        is_published=True,
         show_on_homepage_slider=True,
-        cover_image__isnull=False
-    ).order_by('slider_order')
+    ).exclude(
+        cover_image=""
+    ).exclude(
+        cover_image__isnull=True
+    ).order_by("slider_order", "title")
     data = [
         {
-            'id': album.id,
-            'title': album.title,
-            'caption': album.description or album.title,
-            'cover_image_url': album.cover_image.url if album.cover_image else None,
-            'slug': album.slug,
-            'slider_order': album.slider_order,
+            "id": album.id,
+            "album_name": album.title,
+            "album_slug": album.slug,
+            "cover_image_url": album.cover_image.url if album.cover_image else None,
+            "slider_caption": album.effective_slider_caption,
+            "slider_order": album.slider_order,
         }
         for album in albums
     ]

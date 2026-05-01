@@ -19,9 +19,12 @@ class NewsPost(models.Model):
 class GalleryAlbum(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
+    category = models.CharField(max_length=100, blank=True)
     description = models.TextField(blank=True)
     cover_image = models.ImageField(upload_to='gallery_covers/', blank=True, null=True)
+    is_published = models.BooleanField(default=True)
     show_on_homepage_slider = models.BooleanField(default=False)
+    slider_caption = models.CharField(max_length=255, blank=True)
     slider_order = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -29,6 +32,10 @@ class GalleryAlbum(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def effective_slider_caption(self):
+        return self.slider_caption or self.title
 
 class GalleryImage(models.Model):
     album = models.ForeignKey(GalleryAlbum, related_name='images', on_delete=models.CASCADE)

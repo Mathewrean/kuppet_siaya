@@ -1,0 +1,123 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    <p>Manage the homepage slider albums shown to visitors. Drag to reorder, update captions, remove albums, or add a new published album.</p>
+
+    <div style="display:grid; gap:2rem; grid-template-columns: 2fr 1fr; align-items:start;">
+        <section>
+            <h2>Current Slider Albums</h2>
+            {% if slider_albums %}
+                <form method="post" id="slider-order-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="save_order">
+                    <input type="hidden" name="ordered_ids" id="ordered-ids" value="">
+                    <ul id="slider-album-list" style="list-style:none; padding:0; margin:0; display:grid; gap:1rem;">
+                        {% for album in slider_albums %}
+                            <li data-album-id="{{ album.id }}" draggable="true" style="display:flex; gap:1rem; align-items:center; border:1px solid #ddd; padding:1rem; border-radius:8px; background:#fff;">
+                                <span style="font-size:1.2rem; cursor:grab;" aria-hidden="true">&#9776;</span>
+                                {% if album.cover_image %}
+                                    <img src="{{ album.cover_image.url }}" alt="{{ album.title }}" style="width:90px; height:64px; object-fit:cover; border-radius:6px;">
+                                {% endif %}
+                                <div style="flex:1;">
+                                    <div style="font-weight:600;">{{ album.title }}</div>
+                                    <div style="color:#666;">/gallery/{{ album.slug }}</div>
+                                    <label for="caption_{{ album.id }}" style="display:block; margin-top:0.5rem;">Slider Caption</label>
+                                    <input
+                                        id="caption_{{ album.id }}"
+                                        name="caption_{{ album.id }}"
+                                        type="text"
+                                        value="{{ album.slider_caption }}"
+                                        placeholder="{{ album.title }}"
+                                        style="width:100%; max-width:420px;"
+                                    >
+                                </div>
+                                <form method="post" style="margin:0;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="remove">
+                                    <input type="hidden" name="album_id" value="{{ album.id }}">
+                                    <button type="submit" class="deletelink">Remove</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div style="margin-top:1rem;">
+                        <button type="submit" class="default">Save Slider Order</button>
+                    </div>
+                </form>
+            {% else %}
+                <p>No albums are currently configured for the homepage slider.</p>
+            {% endif %}
+        </section>
+
+        <aside>
+            <h2>Add Published Album</h2>
+            {% if available_albums %}
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="add">
+                    <label for="album_id">Published albums</label>
+                    <select name="album_id" id="album_id" style="width:100%; margin:0.5rem 0 1rem;">
+                        {% for album in available_albums %}
+                            <option value="{{ album.id }}">{{ album.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="default">Add To Slider</button>
+                </form>
+            {% else %}
+                <p>All published albums are already in the slider or no published albums are available.</p>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const list = document.getElementById("slider-album-list");
+        const orderedIdsInput = document.getElementById("ordered-ids");
+        if (!list || !orderedIdsInput) return;
+
+        let draggedItem = null;
+
+        function syncIds() {
+            orderedIdsInput.value = Array.from(list.querySelectorAll("[data-album-id]"))
+                .map((item) => item.dataset.albumId)
+                .join(",");
+        }
+
+        syncIds();
+
+        list.querySelectorAll("[data-album-id]").forEach((item) => {
+            item.addEventListener("dragstart", () => {
+                draggedItem = item;
+                item.style.opacity = "0.5";
+            });
+
+            item.addEventListener("dragend", () => {
+                item.style.opacity = "1";
+                draggedItem = null;
+                syncIds();
+            });
+
+            item.addEventListener("dragover", (event) => {
+                event.preventDefault();
+            });
+
+            item.addEventListener("drop", (event) => {
+                event.preventDefault();
+                if (!draggedItem || draggedItem === item) return;
+                const items = Array.from(list.children);
+                const draggedIndex = items.indexOf(draggedItem);
+                const targetIndex = items.indexOf(item);
+                if (draggedIndex < targetIndex) {
+                    item.after(draggedItem);
+                } else {
+                    item.before(draggedItem);
+                }
+                syncIds();
+            });
+        });
+    })();
+</script>
+{% endblock %}

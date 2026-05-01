@@ -3,153 +3,149 @@
 
 {% block title %}Home - KUPPET Siaya Branch{% endblock %}
 
+{% block extra_head %}
+<style>
+  .hero-section[hidden] {
+    display: none !important;
+  }
+
+  .hero-slider-shell {
+    position: relative;
+    min-height: clamp(18rem, 42vw, 30rem);
+    overflow: hidden;
+    background: linear-gradient(135deg, #0f2f25, #1b5f47);
+  }
+
+  .hero-slider-track {
+    position: relative;
+    min-height: inherit;
+  }
+
+  .hero-slide-link {
+    position: absolute;
+    inset: 0;
+    display: block;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.45s ease;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .hero-slide-link.is-active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .hero-slide-link img {
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    object-fit: cover;
+    display: block;
+  }
+
+  .hero-slide-overlay {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 1.25rem;
+    background: linear-gradient(180deg, transparent 0%, rgba(10, 17, 14, 0.86) 58%, rgba(10, 17, 14, 0.94) 100%);
+    color: #fff;
+  }
+
+  .hero-slide-caption {
+    margin: 0 0 0.75rem;
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  .hero-slide-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+  }
+
+  .hero-slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 2.75rem;
+    height: 2.75rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .hero-slider-arrow--prev {
+    left: 1rem;
+  }
+
+  .hero-slider-arrow--next {
+    right: 1rem;
+  }
+
+  .hero-slider-dots {
+    position: absolute;
+    left: 50%;
+    bottom: 1rem;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    z-index: 2;
+  }
+
+  .hero-slider-dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+  }
+
+  .hero-slider-dot.is-active {
+    background: #fff;
+  }
+
+  @media (max-width: 640px) {
+    .hero-slider-shell {
+      min-height: 17rem;
+    }
+
+    .hero-slide-overlay {
+      padding: 1rem;
+    }
+
+    .hero-slider-arrow {
+      width: 2.35rem;
+      height: 2.35rem;
+    }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="hero-section">
-  <div class="hero-slider" id="hero-slider">
-    <!-- Slides injected by JavaScript from /api/homepage-slider/ -->
+<section class="hero-section" id="homepage-slider-section" hidden>
+  <div class="hero-slider-shell" id="homepage-slider" aria-label="Homepage gallery slider">
+    <div class="hero-slider-track" id="homepage-slider-track"></div>
+    <button type="button" class="hero-slider-arrow hero-slider-arrow--prev" id="homepage-slider-prev" aria-label="Previous slide" hidden>&#10094;</button>
+    <button type="button" class="hero-slider-arrow hero-slider-arrow--next" id="homepage-slider-next" aria-label="Next slide" hidden>&#10095;</button>
+    <div class="hero-slider-dots" id="homepage-slider-dots" hidden></div>
   </div>
 </section>
-
-<script>
-(function() {
-  const slider = document.getElementById('hero-slider');
-  if (!slider) return;
-
-  let slides = [];
-  let currentIndex = 0;
-  let timer = null;
-  const intervalTime = 5000;
-
-  function createSlide(slide) {
-    const slideEl = document.createElement('div');
-    slideEl.className = 'hero-slide';
-    slideEl.innerHTML = `
-      <a href="/gallery/${slide.slug}/" aria-label="Open ${slide.title} album">
-        ${slide.cover_image_url 
-          ? `<img src="${slide.cover_image_url}" alt="${slide.title}">`
-          : `<div class="hero-slide__placeholder">${slide.caption}</div>`
-        }
-      </a>
-    `;
-    return slideEl;
-  }
-
-  function render() {
-    slider.innerHTML = '';
-    if (slides.length === 0) {
-      slider.innerHTML = '<div class="hero-slide is-active"><a href="/gallery/" aria-label="Open gallery"><div class="hero-slide__placeholder">KUPPET Siaya Gallery</div></a></div>';
-      return;
-    }
-    slides.forEach((s, i) => {
-      const el = createSlide(s);
-      if (i === 0) el.classList.add('is-active');
-      slider.appendChild(el);
-    });
-    // Add controls if more than 1 slide
-    if (slides.length > 1) {
-      addControls();
-    }
-  }
-
-  function addControls() {
-    // Prevent adding twice
-    if (slider.querySelector('.hero-controls')) return;
-    slider.insertAdjacentHTML('beforeend', `
-      <div class="hero-controls">
-        <button type="button" class="hero-arrow" data-hero-prev aria-label="Previous slide">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
-        <button type="button" class="hero-arrow" data-hero-next aria-label="Next slide">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6"></path>
-          </svg>
-        </button>
-      </div>
-      <div class="hero-dots"></div>
-    `);
-    const dots = slider.querySelector('.hero-dots');
-    slides.forEach((_, i) => {
-      const dot = document.createElement('button');
-      dot.type = 'button';
-      dot.className = 'hero-dot' + (i === 0 ? ' is-active' : '');
-      dot.setAttribute('aria-label', 'Go to slide ' + (i+1));
-      dot.addEventListener('click', () => goTo(i));
-      dots.appendChild(dot);
-    });
-    slider.querySelector('[data-hero-prev]').addEventListener('click', prev);
-    slider.querySelector('[data-hero-next]').addEventListener('click', next);
-  }
-
-  function updateDots() {
-    const dots = slider.querySelectorAll('.hero-dot');
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('is-active', i === currentIndex);
-    });
-  }
-
-  function showSlide(index) {
-    const slideEls = slider.querySelectorAll('.hero-slide');
-    slideEls.forEach((el, i) => el.classList.toggle('is-active', i === index));
-    updateDots();
-  }
-
-  function next() {
-    currentIndex = (currentIndex + 1) % slides.length;
-    showSlide(currentIndex);
-  }
-
-  function prev() {
-    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    showSlide(currentIndex);
-  }
-
-  function goTo(index) {
-    currentIndex = index;
-    showSlide(currentIndex);
-    resetTimer();
-  }
-
-  function resetTimer() {
-    clearInterval(timer);
-    if (slides.length > 1) {
-      timer = setInterval(next, intervalTime);
-    }
-  }
-
-  // Fetch slider data
-  fetch('/api/homepage-slider/')
-    .then(res => res.json())
-    .then(data => {
-      slides = data;
-      currentIndex = 0;
-      render();
-      resetTimer();
-    })
-    .catch(err => {
-      console.error('Slider load failed', err);
-      slides = [];
-      render();
-    });
-
-  // Pause on hover
-  slider.addEventListener('mouseenter', () => clearInterval(timer));
-  slider.addEventListener('mouseleave', resetTimer);
-})();
-</script>
-
-<style>
-.hero-section { position: relative; overflow: hidden; }
-.hero-slider { display: flex; }
-.hero-slide { flex: 0 0 100%; transition: opacity 0.5s; }
-.hero-slide img { width: 100%; height: 400px; object-fit: cover; display: block; }
-.hero-controls { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; display: flex; justify-content: space-between; padding: 0 1rem; pointer-events: none; }
-.hero-arrow { pointer-events: auto; background: rgba(0,0,0,0.3); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-.hero-dots { position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%); display: flex; gap: 0.5rem; }
-.hero-dot { width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; }
-.hero-dot.is-active { background: white; }
-</style>
 
 <section class="section-shell bg-white">
     <div class="page-shell">
@@ -222,57 +218,121 @@
 
 {% block extra_js %}
 <script>
-    (function () {
-        const slider = document.getElementById('hero-slider');
-        if (!slider) return;
+  (function () {
+    const section = document.getElementById("homepage-slider-section");
+    const slider = document.getElementById("homepage-slider");
+    const track = document.getElementById("homepage-slider-track");
+    const prevButton = document.getElementById("homepage-slider-prev");
+    const nextButton = document.getElementById("homepage-slider-next");
+    const dotsContainer = document.getElementById("homepage-slider-dots");
+    if (!section || !slider || !track || !prevButton || !nextButton || !dotsContainer) return;
 
-        const slides = Array.from(slider.querySelectorAll('[data-slide]'));
-        const dots = Array.from(slider.querySelectorAll('[data-hero-dot]'));
-        const prev = slider.querySelector('[data-hero-prev]');
-        const next = slider.querySelector('[data-hero-next]');
+    let slides = [];
+    let currentIndex = 0;
+    let timerId = null;
+    const intervalMs = 5000;
 
-        if (slides.length <= 1) return;
+    function stopAutoPlay() {
+      if (timerId) {
+        window.clearInterval(timerId);
+        timerId = null;
+      }
+    }
 
-        let index = 0;
-        let timerId = null;
+    function startAutoPlay() {
+      stopAutoPlay();
+      if (slides.length > 1) {
+        timerId = window.setInterval(() => goTo(currentIndex + 1), intervalMs);
+      }
+    }
 
-        function render(nextIndex) {
-            index = (nextIndex + slides.length) % slides.length;
-            slides.forEach((slide, slideIndex) => {
-                slide.classList.toggle('is-active', slideIndex === index);
-            });
-            dots.forEach((dot, dotIndex) => {
-                dot.classList.toggle('is-active', dotIndex === index);
-            });
-        }
+    function goTo(index) {
+      currentIndex = (index + slides.length) % slides.length;
+      const slideLinks = track.querySelectorAll(".hero-slide-link");
+      const dots = dotsContainer.querySelectorAll(".hero-slider-dot");
+      slideLinks.forEach((slideLink, slideIndex) => {
+        slideLink.classList.toggle("is-active", slideIndex === currentIndex);
+      });
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle("is-active", dotIndex === currentIndex);
+      });
+    }
 
-        function start() {
-            timerId = window.setInterval(() => render(index + 1), 5000);
-        }
+    function render() {
+      if (!slides.length) {
+        section.hidden = true;
+        track.innerHTML = "";
+        return;
+      }
 
-        function restart() {
-            window.clearInterval(timerId);
-            start();
-        }
+      section.hidden = false;
+      track.innerHTML = slides.map((slide, index) => `
+        <a
+          href="/gallery/${slide.album_slug}/"
+          class="hero-slide-link${index === 0 ? " is-active" : ""}"
+          aria-label="Open ${slide.album_name} album"
+        >
+          <img src="${slide.cover_image_url}" alt="${slide.album_name}">
+          <span class="hero-slide-overlay">
+            <span class="hero-slide-caption">${slide.slider_caption || slide.album_name}</span>
+            <span class="hero-slide-button">View Album &rarr;</span>
+          </span>
+        </a>
+      `).join("");
 
-        prev?.addEventListener('click', () => {
-            render(index - 1);
-            restart();
+      const hasMultipleSlides = slides.length > 1;
+      prevButton.hidden = !hasMultipleSlides;
+      nextButton.hidden = !hasMultipleSlides;
+      dotsContainer.hidden = !hasMultipleSlides;
+      dotsContainer.innerHTML = hasMultipleSlides
+        ? slides.map((slide, index) => `
+            <button
+              type="button"
+              class="hero-slider-dot${index === 0 ? " is-active" : ""}"
+              data-slide-index="${index}"
+              aria-label="Go to slide ${index + 1}"
+            ></button>
+          `).join("")
+        : "";
+
+      dotsContainer.querySelectorAll("[data-slide-index]").forEach((dot) => {
+        dot.addEventListener("click", function () {
+          goTo(Number(this.dataset.slideIndex));
+          startAutoPlay();
         });
+      });
 
-        next?.addEventListener('click', () => {
-            render(index + 1);
-            restart();
-        });
+      currentIndex = 0;
+      startAutoPlay();
+    }
 
-        dots.forEach((dot) => {
-            dot.addEventListener('click', () => {
-                render(Number(dot.dataset.heroDot));
-                restart();
-            });
-        });
+    prevButton.addEventListener("click", function () {
+      goTo(currentIndex - 1);
+      startAutoPlay();
+    });
 
-        start();
-    }());
+    nextButton.addEventListener("click", function () {
+      goTo(currentIndex + 1);
+      startAutoPlay();
+    });
+
+    slider.addEventListener("mouseenter", stopAutoPlay);
+    slider.addEventListener("mouseleave", startAutoPlay);
+
+    fetch("/api/gallery/homepage-slider/")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Slider request failed");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        slides = Array.isArray(data) ? data : [];
+        render();
+      })
+      .catch(() => {
+        section.hidden = true;
+      });
+  })();
 </script>
 {% endblock %}
