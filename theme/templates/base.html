@@ -27,9 +27,10 @@
                 <div class="site-nav-item {% if request.resolver_match.url_name == 'about' or request.resolver_match.url_name == 'about_profile' or request.resolver_match.url_name == 'about_bec' or request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">
                     <a href="{% url 'about' %}" class="site-nav-link">About</a>
                     <div class="site-dropdown">
-                        <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Branch Profile</a>
-                        <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC</a>
-                        <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC</a>
+                        <a href="{% url 'about' %}" class="{% if request.resolver_match.url_name == 'about' %}is-active{% endif %}">KUPPET Siaya</a>
+                        <a href="{% url 'about_profile' %}" class="{% if request.resolver_match.url_name == 'about_profile' %}is-active{% endif %}">Profile</a>
+                        <a href="{% url 'about_bec' %}" class="{% if request.resolver_match.url_name == 'about_bec' %}is-active{% endif %}">BEC — Branch Executive Committee</a>
+                        <a href="{% url 'about_bgc' %}" class="{% if request.resolver_match.url_name == 'about_bgc' %}is-active{% endif %}">BGC — Branch Governing Council</a>
                     </div>
                 </div>
 
@@ -52,7 +53,7 @@
                 </div>
 
                 <div class="site-nav-item {% if request.resolver_match.url_name == 'contact' %}is-active{% endif %}">
-                    <a href="{% url 'contact' %}" class="site-nav-link">Contact</a>
+                    <a href="{% url 'contact' %}" class="site-nav-link">Contacts</a>
                 </div>
             </nav>
 

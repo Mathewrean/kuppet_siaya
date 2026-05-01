@@ -37,7 +37,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 3h7l5 5v13H7z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 3v5h5"></path>
                 </svg>
-                <span class="dashboard-nav-label">Financials</span>
+                <span class="dashboard-nav-label">Financial Statement of the Union</span>
             </a>
             {% if user.is_subcounty_rep or user.is_superuser %}
             <a href="{% url 'subcounty_dashboard' %}" class="dashboard-nav-link {% if request.resolver_match.url_name == 'subcounty_dashboard' or request.resolver_match.url_name == 'subcounty_claim_review' %}is-active{% endif %}">
@@ -66,7 +66,7 @@
                 <svg class="dashboard-nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16v11H7l-3 3V5z"></path>
                 </svg>
-                <span class="dashboard-nav-label">Support</span>
+                <span class="dashboard-nav-label">Request for More Information</span>
             </a>
         </nav>
 

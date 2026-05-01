@@ -19,13 +19,13 @@
     </section>
 
     <section class="dashboard-card">
-        <p class="dashboard-card__eyebrow">Membership</p>
+        <p class="dashboard-card__eyebrow">KUPPET Membership</p>
         <h2>Branch Member</h2>
         <p class="text-sm text-[var(--gray-700)]">Active member since {{ user.approval_date|date:"M Y"|default:"approval" }}</p>
     </section>
 
     <section class="dashboard-card">
-        <p class="dashboard-card__eyebrow">Request Info</p>
+        <p class="dashboard-card__eyebrow">Request for More Information</p>
         <div class="mb-4 flex justify-center">
             <svg class="h-8 w-8 text-[var(--green-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16v14H4z"></path>
@@ -34,12 +34,12 @@
         </div>
         <p class="mb-4 text-center text-[0.9rem] text-[var(--gray-700)]">Reach the branch for member support, clarification, or document-related questions.</p>
         <div class="text-center">
-            <a href="{% url 'support' %}" class="btn btn-accent">Request Info</a>
+            <a href="{% url 'support' %}" class="btn btn-accent">Request for More Information</a>
         </div>
     </section>
 
     <section class="dashboard-card">
-        <p class="dashboard-card__eyebrow">Financial Statements</p>
+        <p class="dashboard-card__eyebrow">Financial Statement of the Union</p>
         <div class="statement-list">
             {% for statement in financial_statements %}
                 <div class="statement-row">

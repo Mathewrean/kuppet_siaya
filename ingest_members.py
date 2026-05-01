@@ -317,7 +317,7 @@ def ingest_members(csv_path):
             is_staff=False,
             is_superuser=False,
         )
-        user.set_password(temp_password or 'Kuppet@2024')
+        user.set_password(temp_password or 'KUPPET@2024')
         users_to_create.append(user)
         existing_tscs.add(tsc_number)
         stats['successful'] += 1
