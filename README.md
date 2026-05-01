@@ -63,6 +63,9 @@ python manage.py seed_members --file Members.docx --credentials-file member_seed
 
 # Start development server
 python manage.py runserver
+
+# Or use ASGI server for concurrent requests (recommended):
+uvicorn kuppetsiaya.asgi:application --host 0.0.0.0 --port 8000 --workers 4
 ```
 
 ## Login Instructions
@@ -382,6 +385,37 @@ Returns JSON array of slider items:
 4. Verify file name appears
 5. Repeat for additional beneficiaries
 6. Click "Submit Claim"
+
+## Test Credentials (Development)
+
+Use these accounts for local testing. These are example credentials for the development/test environment only — do not use in production.
+
+- Member:
+   - TSC Number: TSC12345
+   - Password: TestPass!23
+   - Access: Member dashboard, BBF claims
+
+- Subcounty Representative:
+   - TSC Number: SUBCOUNTY1
+   - Password: SubPass!23
+   - Access: Subcounty dashboard, claim review
+
+- County Representative:
+   - TSC Number: COUNTY1
+   - Password: CountyPass!23
+   - Access: County dashboard, final approvals
+
+- Admin / Superuser:
+   - Create with: `python manage.py createsuperuser` (or use your local admin credentials)
+
+To enable rep roles in the Django shell or admin:
+```python
+# Example: enable subcounty role for a user
+from accounts.models import CustomUser
+u = CustomUser.objects.get(tsc_number='SUBCOUNTY1')
+u.is_subcounty_rep = True
+u.save()
+```
 
 ## Troubleshooting
 

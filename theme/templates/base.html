@@ -268,13 +268,42 @@
                 });
 
                 memberToggle.addEventListener('keydown', (e) => {
+                    const menuItems = Array.from(memberDropdown?.querySelectorAll('[role="menuitem"]') || []);
+                    const firstItem = menuItems[0];
+                    const lastItem = menuItems[menuItems.length - 1];
+
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         const expanded = memberToggle.getAttribute('aria-expanded') === 'true';
-                        if (expanded) closeMemberMenu(); else openMemberMenu();
+                        if (expanded) closeMemberMenu(); else {
+                            openMemberMenu();
+                            // focus first menu item
+                            firstItem && firstItem.focus();
+                        }
                     } else if (e.key === 'Escape') {
                         closeMemberMenu();
                         memberToggle.focus();
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        openMemberMenu();
+                        // focus next item
+                        if (document.activeElement === memberToggle) {
+                            firstItem && firstItem.focus();
+                        } else {
+                            const idx = menuItems.indexOf(document.activeElement);
+                            const next = menuItems[(idx + 1) % menuItems.length];
+                            next && next.focus();
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        openMemberMenu();
+                        if (document.activeElement === memberToggle) {
+                            lastItem && lastItem.focus();
+                        } else {
+                            const idx = menuItems.indexOf(document.activeElement);
+                            const prev = menuItems[(idx - 1 + menuItems.length) % menuItems.length];
+                            prev && prev.focus();
+                        }
                     }
                 });
 

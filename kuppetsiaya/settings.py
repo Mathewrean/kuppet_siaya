@@ -93,8 +93,10 @@ INSTALLED_APPS = [
 
 # TAILWIND_APP_NAME = 'theme'
 
+# WhiteNoise for static file serving in production
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,6 +104,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Static files storage - use simple storage for development
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'kuppetsiaya.urls'
 
@@ -194,3 +202,14 @@ MEDIA_ROOT = BASE_DIR
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# ASGI application for concurrent request handling
+ASGI_APPLICATION = 'kuppetsiaya.asgi.application'
+
+# Database connection pooling (for SQLite, increase timeout)
+DATABASES['default']['OPTIONS'] = {
+    'timeout': 30,
+}
+
+# Increase max connections for concurrent requests
+CONN_MAX_AGE = 60
