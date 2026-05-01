@@ -18,130 +18,79 @@
   </div>
 
   <div class="bgc-content">
-    <!-- Communication, Publicity and Data Committee -->
-    <section class="bgc-section" data-section="comm">
-      <h2 class="section-heading">Communication, Publicity and Data Committee</h2>
-      <div class="cards cards-committee">
-        <article class="card">
-          <div class="avatar" aria-hidden="true"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">Moses Adinda Odindo</div>
-            <div class="card-meta">Maranda, Bondo</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">Mercy Aoko Ojoga</div>
-            <div class="card-meta">Aluor, Gem Wagai</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">Oduor Oketch</div>
-            <div class="card-meta">—</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">George Agik</div>
-            <div class="card-meta">Ramba, Rarieda</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">Charles Ger</div>
-            <div class="card-meta">Ramba, Rarieda</div>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body">
-            <div class="card-name">Dr. Dorah Oula</div>
-            <div class="card-meta">Usire, Bondo</div>
-          </div>
-        </article>
+    {% if members %}
+      {% regroup members by title as committee_groups %}
+      {% for group in committee_groups %}
+        {% if 'Communication' in group.grouper %}
+          <section class="bgc-section" data-section="comm">
+            <h2 class="section-heading">Communication, Publicity and Data Committee</h2>
+            <div class="cards cards-committee">
+              {% for member in group.list %}
+                <article class="card">
+                  <div class="avatar" aria-hidden="true"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
+                  <div class="card-body">
+                    <div class="card-name">{{ member.name }}</div>
+                    <div class="card-meta">{{ member.title }}</div>
+                  </div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% elif 'Co-Curriculum' in group.grouper %}
+          <section class="bgc-section" data-section="co">
+            <h2 class="section-heading">Co-Curriculum Committee</h2>
+            <div class="cards cards-committee">
+              {% for member in group.list %}
+                <article class="card">
+                  <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
+                  <div class="card-body"><div class="card-name">{{ member.name }}</div><div class="card-meta">{{ member.title }}</div></div>
+                </article>
+              {% endfor %}
+            </div>
+          </section>
+        {% elif 'Investment' in group.grouper or 'Resource Mobilization' in group.grouper or 'Resource Mobilisation' in group.grouper %}
+          <section class="bgc-section" data-section="inv">
+            <h2 class="section-heading">Investment and Resource Mobilisation Committee</h2>
+            <div class="cards cards-committee">
+              {% for member in group.list %}
+                <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">{{ member.name }}</div><div class="card-meta">{{ member.title }}</div></div></article>
+              {% endfor %}
+            </div>
+          </section>
+        {% elif 'Social Welfare' in group.grouper %}
+          <section class="bgc-section" data-section="soc">
+            <h2 class="section-heading">Social Welfare Committee</h2>
+            <div class="cards cards-committee">
+              {% for member in group.list %}
+                <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">{{ member.name }}</div><div class="card-meta">{{ member.title }}</div></div></article>
+              {% endfor %}
+            </div>
+          </section>
+        {% elif 'Other Appointments' in group.grouper %}
+          <section class="bgc-section" data-section="other">
+            <h2 class="section-heading">Other Appointments</h2>
+            <div class="cards cards-committee">
+              {% for member in group.list %}
+                <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">{{ member.name }}</div><div class="card-meta">{{ member.title }}</div></div></article>
+              {% endfor %}
+            </div>
+          </section>
+        {% elif 'Sub-County Representative' in group.grouper %}
+          <section class="bgc-section" data-section="subs">
+            <h2 class="section-heading">Sub-County Representatives</h2>
+            <div class="cards cards-subs">
+              {% for member in group.list %}
+                <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">{{ member.name }}</div><div class="card-meta">{{ member.title }}</div></div></article>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <p>BGC member profiles will appear here once they are published.</p>
       </div>
-    </section>
-
-    <!-- Co-Curriculum Committee -->
-    <section class="bgc-section" data-section="co">
-      <h2 class="section-heading">Co-Curriculum Committee</h2>
-      <div class="cards cards-committee">
-        <article class="card">
-          <div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div>
-          <div class="card-body"><div class="card-name">Teddy Omondi</div><div class="card-meta">Ugenya High, Ugenya</div></div>
-        </article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Naomi Ruth Kabibi</div><div class="card-meta">Nyamira, Bondo</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Lord Obwolo</div><div class="card-meta">JSS Siaya</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Verdice Jakomala</div><div class="card-meta">Memba, Rarieda</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">James Ashuma</div><div class="card-meta">Jaramogi Oginga Odinga, Bondo</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Irene Kathure</div><div class="card-meta">Usire, Bondo</div></div></article>
-      </div>
-    </section>
-
-    <!-- Investment and Resource Mobilisation Committee -->
-    <section class="bgc-section" data-section="inv">
-      <h2 class="section-heading">Investment and Resource Mobilisation Committee</h2>
-      <div class="cards cards-committee">
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Franklin Warambo</div><div class="card-meta">Ambrose AA, Siaya</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Sharon Odede</div><div class="card-meta">Sirembe, Gem Wagai</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Joash Ongoro</div><div class="card-meta">Chianda, Rarieda</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Edwin Janam</div><div class="card-meta">Sigomere, Ugunja</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Lavender Otieno</div><div class="card-meta">Rambo, Siaya</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Clement Owino</div><div class="card-meta">Ajigo JSS, Bondo</div></div></article>
-      </div>
-    </section>
-
-    <!-- Social Welfare Committee -->
-    <section class="bgc-section" data-section="soc">
-      <h2 class="section-heading">Social Welfare Committee</h2>
-      <div class="cards cards-committee">
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Denis Onam</div><div class="card-meta">Siger, Rarieda</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Richard Odongo</div><div class="card-meta">Sega Township, Ugenya</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Erick Komollo</div><div class="card-meta">Simerro, Ugunja</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Dora Amondi</div><div class="card-meta">Ulafu, Siaya</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Benard Juma</div><div class="card-meta">—</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Stephen Oduor</div><div class="card-meta">JSS Siaya Township, Siaya</div></div></article>
-      </div>
-    </section>
-
-    <!-- Other Appointments -->
-    <section class="bgc-section" data-section="other">
-      <h2 class="section-heading">Other Appointments</h2>
-      <div class="cards cards-committee">
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Michael Omenyo</div><div class="card-meta">—</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Benard Seko</div><div class="card-meta">Nyawara, Gem Yala</div></div></article>
-      </div>
-    </section>
-
-    <!-- Sub-County Representatives -->
-    <section class="bgc-section" data-section="subs">
-      <h2 class="section-heading">Sub-County Representatives</h2>
-      <p class="lead">The following serve as Sub-County Representatives following a Branch Executive Committee meeting. Official appointment letters have been issued.</p>
-      <div class="cards cards-subs">
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Paul Dwasi</div><div class="card-meta">Alego West — Dibuoro Secondary School</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Allan Jakom</div><div class="card-meta">Alego East — Mbaga Girls</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Lorna Juma</div><div class="card-meta">Usigu — Kanyibok JSS</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Steve Nyagaya</div><div class="card-meta">Ugenya — Ugambe Secondary School</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Joel Onyao</div><div class="card-meta">Ugunja — Konjra JSS</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Fredrick Oloo</div><div class="card-meta">Rarieda — Gagra Secondary School</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">George Amos Odhiambo</div><div class="card-meta">Gem Yala — Yala Township Secondary School</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Stephen Samba Samba</div><div class="card-meta">Gem Wagai — Nyasidhi JSS</div></div></article>
-        <article class="card"><div class="avatar"><img src="{% static 'images/person-placeholder.svg' %}" alt=""></div><div class="card-body"><div class="card-name">Geoffrey Ouma</div><div class="card-meta">Bondo — Barchando Girls</div></div></article>
-      </div>
-
-      <p class="attrib">Richard Agot, Executive Secretary, KUPPET Siaya.</p>
-    </section>
-
+    {% endif %}
   </div>
 </section>
 
@@ -178,7 +127,6 @@
     function setActive(btn){ buttons.forEach(b=>b.classList.remove('is-active')); btn.classList.add('is-active'); }
     function showFilter(filter){ sections.forEach(s=>{ if(filter==='all'){ s.style.display='block'; } else { s.style.display = (s.getAttribute('data-section')===filter)?'block':'none'; } }); }
     buttons.forEach(btn=>{ btn.addEventListener('click', ()=>{ setActive(btn); showFilter(btn.getAttribute('data-filter')); }); });
-    // initialize
     showFilter('all');
   })();
 </script>

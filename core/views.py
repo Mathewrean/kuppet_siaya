@@ -89,7 +89,8 @@ def about_bec(request):
 
 
 def about_bgc(request):
-    return render(request, "core/about_bgc.html")
+    members = BGCMember.objects.all().order_by('order')
+    return render(request, "core/about_bgc.html", {"members": members})
 
 
 def projects(request):

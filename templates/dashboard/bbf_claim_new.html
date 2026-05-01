@@ -200,24 +200,28 @@ document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => 
     const formData = new FormData(form);
     const errors = [];
     
-    // Count beneficiaries
     const rows = document.querySelectorAll('.beneficiary-row');
     if (rows.length === 0) {
         errors.push('At least one beneficiary is required.');
     }
 
-    // Check that all beneficiaries have uploaded documents
     for (const row of rows) {
         const fileInput = row.querySelector('input[type="file"]');
         const nameInput = row.querySelector('input[type="text"]');
         const type = row.dataset.type;
         
+        let typeLabel = type;
+        if (type === 'child') typeLabel = 'child';
+        else if (type === 'spouse') typeLabel = 'spouse';
+        else if (type === 'parent_mother') typeLabel = 'mother';
+        else if (type === 'parent_father') typeLabel = 'father';
+        
         if (!nameInput.value.trim()) {
-            errors.push(`Please enter a name for the ${type === 'child' ? 'child' : type === 'spouse' ? 'spouse' : type === 'parent_mother' ? 'mother' : 'father'}.`);
+            errors.push(`Please enter a name for the ${typeLabel}.`);
         }
         
         if (!fileInput.files || fileInput.files.length === 0) {
-            errors.push(`Document required for ${nameInput.value || type}`);
+            errors.push(`Document required for ${nameInput.value || typeLabel}`);
         }
     }
 
@@ -230,124 +234,57 @@ document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => 
         return;
     }
 
-    // Submit via API
-    async function submitClaim() {
-        try {
-            // Step 1: Create the claim
-            const response = await fetch('{% url "bbf-claims-list" %}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({})
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to create claim');
-            }
-
-            const claimId = data.id;
-
-            // Step 2: Add beneficiaries one by one
-            const rows = document.querySelectorAll('.beneficiary-row');
-            for (const row of rows) {
-                const type = row.dataset.type;
-                const nameInput = row.querySelector('input[type="text"]');
-                const fileInput = row.querySelector('input[type="file"]');
-                
-                const benFormData = new FormData();
-                benFormData.append('beneficiary_type', type);
-                benFormData.append('full_name', nameInput.value);
-                if (fileInput.files[0]) {
-                    benFormData.append('document', fileInput.files[0]);
-                }
-
-                const benResponse = await fetch(`/api/bbf/claims/${claimId}/beneficiaries/`, {
-                    method: 'POST',
-                    body: benFormData,
-                    headers: {
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                    },
-                    credentials: 'same-origin'
-                });
-
-                if (!benResponse.ok) {
-                    throw new Error(`Failed to add beneficiary: ${nameInput.value}`);
-                }
-            }
-
-            window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${claimId}/`);
-        } catch (err) {
-            const errorDiv = document.getElementById('formErrors');
-            errorDiv.classList.remove('hidden');
-            errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (err.message || 'An error occurred') + '</p>';
-            console.error(err);
-        }
-    }
-
-    document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const form = e.target;
-        const formData = new FormData(form);
-        const errors = [];
-        
-        // Count beneficiaries
-        const rows = document.querySelectorAll('.beneficiary-row');
-        if (rows.length === 0) {
-            errors.push('At least one beneficiary is required.');
-        }
-
-        // Check that all beneficiaries have uploaded documents
-        for (const row of rows) {
-            const fileInput = row.querySelector('input[type="file"]');
-            const nameInput = row.querySelector('input[type="text"]');
-            const type = row.dataset.type;
-            
-            let typeLabel = type;
-            if (type === 'child') typeLabel = 'child';
-            else if (type === 'spouse') typeLabel = 'spouse';
-            else if (type === 'parent_mother') typeLabel = 'mother';
-            else if (type === 'parent_father') typeLabel = 'father';
-            
-            if (!nameInput.value.trim()) {
-                errors.push(`Please enter a name for the ${typeLabel}.`);
-            }
-            
-            if (!fileInput.files || fileInput.files.length === 0) {
-                errors.push(`Document required for ${nameInput.value || typeLabel}`);
-            }
-        }
-
-        if (errors.length > 0) {
-            const errorDiv = document.getElementById('formErrors');
-            errorDiv.classList.remove('hidden');
-            errorDiv.innerHTML = '<p class="font-medium text-red-500 mb-2">Please fix the following errors:</p><ul class="list-disc list-inside space-y-1 text-red-500">' + 
-                errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
-            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            return;
-        }
-
-        await submitClaim();
-    });
+    try {
+        const response = await fetch('{% url "bbf-claims-list" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                'Content-Type': 'application/json',
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify({})
+        });
 
         const data = await response.json();
 
-        if (response.ok) {
-            window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${data.id}/`);
-        } else {
-            const errorDiv = document.getElementById('formErrors');
-            errorDiv.classList.remove('hidden');
-            errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (data.error || JSON.stringify(data)) + '</p>';
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to create claim');
         }
+
+        const claimId = data.id;
+
+        const rows = document.querySelectorAll('.beneficiary-row');
+        for (const row of rows) {
+            const type = row.dataset.type;
+            const nameInput = row.querySelector('input[type="text"]');
+            const fileInput = row.querySelector('input[type="file"]');
+            
+            const benFormData = new FormData();
+            benFormData.append('beneficiary_type', type);
+            benFormData.append('full_name', nameInput.value);
+            if (fileInput.files[0]) {
+                benFormData.append('document', fileInput.files[0]);
+            }
+
+            const benResponse = await fetch(`/api/bbf/claims/${claimId}/beneficiaries/`, {
+                method: 'POST',
+                body: benFormData,
+                headers: {
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                credentials: 'same-origin'
+            });
+
+            if (!benResponse.ok) {
+                throw new Error(`Failed to add beneficiary: ${nameInput.value}`);
+            }
+        }
+
+        window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${claimId}/`);
     } catch (err) {
         const errorDiv = document.getElementById('formErrors');
         errorDiv.classList.remove('hidden');
-        errorDiv.innerHTML = '<p class="font-medium text-red-500">An error occurred. Please try again.</p>';
+        errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (err.message || 'An error occurred') + '</p>';
         console.error(err);
     }
 });

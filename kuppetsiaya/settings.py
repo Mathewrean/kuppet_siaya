@@ -103,10 +103,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Session idle timeout (2 minutes = 120 seconds)
-SESSION_COOKIE_AGE = 120
-SESSION_SAVE_EVERY_REQUEST = True
-
 ROOT_URLCONF = 'kuppetsiaya.urls'
 
 TEMPLATES = [

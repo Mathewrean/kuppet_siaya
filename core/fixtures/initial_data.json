@@ -356,7 +356,88 @@
     "fields": {
       "name": "Benard Seko",
       "title": "Other Appointments",
-      "order": 26
+"order": 26
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 28,
+    "fields": {
+      "name": "Paul Dwasi",
+      "title": "Sub-County Representative",
+      "order": 28
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 29,
+    "fields": {
+      "name": "Allan Jakom",
+      "title": "Sub-County Representative",
+      "order": 29
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 30,
+    "fields": {
+      "name": "Lorna Juma",
+      "title": "Sub-County Representative",
+      "order": 30
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 31,
+    "fields": {
+      "name": "Steve Nyagaya",
+      "title": "Sub-County Representative",
+      "order": 31
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 32,
+    "fields": {
+      "name": "Joel Onyao",
+      "title": "Sub-County Representative",
+      "order": 32
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 33,
+    "fields": {
+      "name": "Fredrick Oloo",
+      "title": "Sub-County Representative",
+      "order": 33
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 34,
+    "fields": {
+      "name": "George Amos Odhiambo",
+      "title": "Sub-County Representative",
+      "order": 34
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 35,
+    "fields": {
+      "name": "Stephen Samba Samba",
+      "title": "Sub-County Representative",
+      "order": 35
+    }
+  },
+  {
+    "model": "core.bgcmember",
+    "pk": 36,
+    "fields": {
+      "name": "Geoffrey Ouma",
+      "title": "Sub-County Representative",
+      "order": 36
     }
   }
 ]
