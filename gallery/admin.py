@@ -57,7 +57,7 @@ def album_manage_view(request, album_id):
 
 def seed_gallery_view(request):
     # POST only endpoint to run the seeder from admin UI
-    if not request.user.is_staff:
+    if not request.user.is_superuser:
         return redirect('admin:index')
     if request.method == 'POST':
         out = StringIO()
