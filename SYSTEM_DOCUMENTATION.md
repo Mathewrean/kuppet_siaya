@@ -29,7 +29,7 @@ Your login credentials:
 | Role | TSC Number | Email | Password | Status |
 |------|-----------|-------|----------|--------|
 | Member | 123456 | test@example.com | Test@3456 | PENDING |
-| Member | TEST12345 | test12345@kuppetsiaya.or.ke | Test@3456 | APPROVED |
+| Member | 123456 | test12345@kuppetsiaya.or.ke | Test@3456 | APPROVED |
 
 ### First Login Process
 1. Navigate to http://127.0.0.1:8000/accounts/login/
