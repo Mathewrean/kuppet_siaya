@@ -140,3 +140,4 @@ staticfiles/
 Members.docs
 db.sqlite3
 *.csv
+.env
