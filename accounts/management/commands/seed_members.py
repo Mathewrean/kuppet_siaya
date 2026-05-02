@@ -13,6 +13,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
+from accounts.authentication import build_password_seed, format_default_password
 from accounts.models import CustomUser, School, SubCounty
 
 
@@ -149,20 +150,8 @@ def parse_officer_name(officer_name):
     )
 
 
-def build_password_seed(name_value):
-    for token in normalize_text(name_value).split():
-        cleaned_token = re.sub(r"[^0-9A-Za-z]", "", token)
-        if cleaned_token:
-            candidate = cleaned_token.capitalize()
-            if len(candidate) >= 3:
-                return candidate
-            return f"{candidate}Member"
-    return "Member"
-
-
 def build_temporary_password(parsed_name, reg_number):
-    suffix = reg_number[-4:] if len(reg_number) >= 4 else reg_number.zfill(4)
-    return f"{parsed_name.password_seed}@{suffix}"
+    return format_default_password(parsed_name.password_seed, reg_number)
 
 
 def encode_temporary_password(raw_password, iterations):

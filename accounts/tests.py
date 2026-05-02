@@ -1,4 +1,5 @@
 import csv
+import re
 from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -6,10 +7,12 @@ from zipfile import ZipFile
 from xml.sax.saxutils import escape
 
 from django.contrib.auth.hashers import identify_hasher
+from django.core import mail
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from accounts.authentication import ACCOUNT_INIT_SESSION_KEY
 from accounts.models import CustomUser, School, SubCounty
 
 
@@ -158,12 +161,21 @@ class SeedMembersCommandTests(TestCase):
             self.assertTrue(existing_user.check_password("Bernard@5893"))
 
 
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="noreply@example.com",
+)
 class PasswordLoginTests(TestCase):
-    def test_members_can_log_in_with_tsc_number_and_password(self):
+    def extract_otp(self):
+        match = re.search(r"\b(\d{6})\b", mail.outbox[-1].body)
+        self.assertIsNotNone(match)
+        return match.group(1)
+
+    def test_first_time_login_redirects_to_account_initialization(self):
         user = CustomUser.objects.create_user(
             tsc_number="123456",
             email=None,
-            password="Secret@123",
+            password="Akinyi@3456",
             first_name="Akinyi",
             approval_status="APPROVED",
             is_active=True,
@@ -171,9 +183,187 @@ class PasswordLoginTests(TestCase):
 
         response = self.client.post(
             reverse("login"),
-            {"tsc_number": "123456", "password": "Secret@123"},
+            {"tsc_number": "123456", "password": "Akinyi@3456"},
         )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("initialize_account"))
+        self.assertEqual(self.client.session[ACCOUNT_INIT_SESSION_KEY], user.pk)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_placeholder_email_is_treated_as_uninitialized(self):
+        user = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email="123456@kuppetsiaya.or.ke",
+            password="Akinyi@3456",
+            first_name="Akinyi",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("login"),
+            {"tsc_number": "123456", "password": "Akinyi@3456"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("initialize_account"))
+        self.assertEqual(self.client.session[ACCOUNT_INIT_SESSION_KEY], user.pk)
+
+    def test_uninitialized_account_uses_stored_password_even_if_names_changed(self):
+        user = CustomUser.objects.create_user(
+            tsc_number="654321",
+            email=None,
+            password="Judith@4321",
+            first_name="",
+            last_name="",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("login"),
+            {"tsc_number": "654321", "password": "Judith@4321"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("initialize_account"))
+        self.assertEqual(self.client.session[ACCOUNT_INIT_SESSION_KEY], user.pk)
+
+    def test_email_verification_completes_account_initialization(self):
+        user = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email=None,
+            password="Akinyi@3456",
+            first_name="Akinyi",
+            last_name="Omondi",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        self.client.post(
+            reverse("login"),
+            {"tsc_number": "123456", "password": "Akinyi@3456"},
+        )
+        response = self.client.post(
+            reverse("initialize_account"),
+            {
+                "email": "akinyi@example.com",
+                "confirm_email": "akinyi@example.com",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("otp_verify"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["akinyi@example.com"])
+
+        user.refresh_from_db()
+        self.assertIsNone(user.email)
+
+        otp = self.extract_otp()
+        response = self.client.post(reverse("otp_verify"), {"otp": otp})
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.headers["Location"], reverse("dashboard"))
         self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
+        user.refresh_from_db()
+        self.assertEqual(user.email, "akinyi@example.com")
+
+    def test_members_with_verified_email_must_complete_email_otp_login(self):
+        user = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email="member@example.com",
+            password="Akinyi@3456",
+            first_name="Akinyi",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("login"),
+            {"tsc_number": "123456", "password": "Akinyi@3456"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("otp_verify"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ["member@example.com"])
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+        otp = self.extract_otp()
+        response = self.client.post(reverse("otp_verify"), {"otp": otp})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("dashboard"))
+        self.assertEqual(self.client.session["_auth_user_id"], str(user.pk))
+
+    def test_initialized_account_shows_clear_message_when_default_password_is_used(self):
+        user = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email="member@example.com",
+            password="Different@123",
+            first_name="Akinyi",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            reverse("login"),
+            {"tsc_number": user.tsc_number, "password": "Akinyi@3456"},
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This account has already been initialized.")
+
+
+class AdminCompatibilityTests(TestCase):
+    def test_custom_user_changelist_renders_for_admin(self):
+        admin_user = CustomUser.objects.create_superuser(
+            tsc_number="999999",
+            email="admin@example.com",
+            password="Admin@123",
+            first_name="Admin",
+        )
+
+        self.client.force_login(admin_user)
+        response = self.client.get(reverse("admin:accounts_customuser_changelist"))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_verified_member_cannot_access_admin_site(self):
+        member = CustomUser.objects.create_user(
+            tsc_number="111111",
+            email="member@example.com",
+            password="Member@123",
+            first_name="Member",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+        self.client.force_login(member)
+        response = self.client.get(reverse("admin:index"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("admin:login"), response.headers["Location"])
+
+    def test_staff_non_superuser_cannot_log_into_admin(self):
+        staff_user = CustomUser.objects.create_user(
+            tsc_number="222222",
+            email="staff@example.com",
+            password="Staff@123",
+            first_name="Staff",
+            approval_status="APPROVED",
+            is_active=True,
+            is_staff=True,
+        )
+
+        response = self.client.post(
+            reverse("admin:login"),
+            {"username": staff_user.tsc_number, "password": "Staff@123"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "superuser account")
+        self.assertNotIn("_auth_user_id", self.client.session)
