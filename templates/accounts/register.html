@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - KUPPET Siaya Branch{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1 class="auth-heading">Member Registration</h1>
+        <p class="auth-subheading">Verify your TSC number, complete your member details, and submit for branch approval.</p>
+
+        <div id="tsc-result" class="banner" hidden></div>
+
+        <form method="post" id="register-form" class="space-y-5">
+            {% csrf_token %}
+            <div class="field">
+                <label for="tsc_number">TSC Number</label>
+                <input type="text" id="tsc_number" name="tsc_number" required class="text-input">
+                <button type="button" id="verify-tsc" class="btn btn-accent w-full sm:w-auto">Verify TSC</button>
+            </div>
+
+            <div class="form-grid">
+                <div class="field">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" readonly class="text-input is-readonly">
+                </div>
+                <div class="field">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" readonly class="text-input is-readonly">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required class="text-input">
+            </div>
+
+            <div class="field">
+                <label for="phone_number">Phone Number</label>
+                <input type="text" id="phone_number" name="phone_number" class="text-input">
+            </div>
+
+            <div class="field">
+                <label for="sub_county">Sub-County</label>
+                <select id="sub_county" name="sub_county" required class="select-input">
+                    <option value="">Select Sub-County</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="school">School</label>
+                <select id="school" name="school" required class="select-input">
+                    <option value="">Select School</option>
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="text-input">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full">Register</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="{% url 'login' %}" class="text-link">Back to login</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const tscButton = document.getElementById('verify-tsc');
+        const resultBanner = document.getElementById('tsc-result');
+        const subCountySelect = document.getElementById('sub_county');
+        const schoolSelect = document.getElementById('school');
+
+        function setBanner(message, state) {
+            resultBanner.hidden = false;
+            resultBanner.className = `banner ${state === 'success' ? 'banner--success' : 'banner--error'}`;
+            resultBanner.textContent = message;
+        }
+
+        tscButton?.addEventListener('click', async () => {
+            const tsc = document.getElementById('tsc_number').value.trim();
+            if (!tsc) {
+                setBanner('Enter a TSC number before verification.', 'error');
+                return;
+            }
+
+            const response = await fetch(`/accounts/verify-tsc/?tsc=${encodeURIComponent(tsc)}`);
+            const data = await response.json();
+
+            if (data.exists) {
+                document.getElementById('first_name').value = data.first_name || '';
+                document.getElementById('last_name').value = data.last_name || '';
+                setBanner('TSC number verified successfully.', 'success');
+            } else {
+                document.getElementById('first_name').value = '';
+                document.getElementById('last_name').value = '';
+                setBanner('TSC number not found. Contact your Sub-county Representative.', 'error');
+            }
+        });
+
+        fetch('/accounts/api/sub-counties/')
+            .then((response) => response.json())
+            .then((items) => {
+                items.forEach((item) => {
+                    const option = document.createElement('option');
+                    option.value = item.name;
+                    option.textContent = item.name;
+                    option.dataset.subCountyId = item.id;
+                    subCountySelect.appendChild(option);
+                });
+            });
+
+        subCountySelect?.addEventListener('change', async () => {
+            const selectedOption = subCountySelect.options[subCountySelect.selectedIndex];
+            const subCountyId = selectedOption?.dataset?.subCountyId;
+
+            schoolSelect.innerHTML = '<option value="">Select School</option>';
+
+            if (!subCountyId) return;
+
+            const response = await fetch(`/accounts/api/schools/?sub_county=${encodeURIComponent(subCountyId)}`);
+            const items = await response.json();
+            items.forEach((item) => {
+                const option = document.createElement('option');
+                option.value = item.name;
+                option.textContent = item.name;
+                schoolSelect.appendChild(option);
+            });
+        });
+    }());
+</script>
+{% endblock %}

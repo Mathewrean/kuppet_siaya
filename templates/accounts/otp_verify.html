@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - KUPPET Siaya Branch{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1 class="auth-heading">Enter OTP</h1>
+        <p class="auth-subheading">
+            {% if otp_purpose == 'initialize' %}
+                Use the 6-digit code sent to {{ otp_destination }} to verify your email address.
+            {% else %}
+                Use the 6-digit code sent to {{ otp_destination }} to complete sign in.
+            {% endif %}
+        </p>
+
+        <form method="post" id="otp-form" class="space-y-6">
+            {% csrf_token %}
+            <input type="hidden" id="otp" name="otp">
+            <div class="otp-grid">
+                {% for _ in '123456' %}
+                    <input type="text" inputmode="numeric" maxlength="1" class="otp-digit" data-otp-digit aria-label="OTP digit {{ forloop.counter }}">
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary w-full">Verify</button>
+        </form>
+
+        <div class="auth-links">
+            {% if otp_purpose == 'initialize' %}
+                <a href="{% url 'initialize_account' %}" class="text-link">Change email</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="text-link">Back to login</a>
+            {% endif %}
+            <span class="text-link disabled-link">Code expires in {{ otp_expiry_minutes }} minutes</span>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const hiddenInput = document.getElementById('otp');
+        const inputs = Array.from(document.querySelectorAll('[data-otp-digit]'));
+
+        function updateValue() {
+            hiddenInput.value = inputs.map((input) => input.value).join('');
+            inputs.forEach((input) => {
+                input.classList.toggle('is-filled', input.value.length === 1);
+            });
+        }
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/\D/g, '').slice(0, 1);
+                updateValue();
+                if (input.value && inputs[index + 1]) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Backspace' && !input.value && inputs[index - 1]) {
+                    inputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (event) => {
+                event.preventDefault();
+                const digits = (event.clipboardData.getData('text') || '').replace(/\D/g, '').slice(0, inputs.length).split('');
+                digits.forEach((digit, digitIndex) => {
+                    if (inputs[digitIndex]) {
+                        inputs[digitIndex].value = digit;
+                    }
+                });
+                updateValue();
+                const nextInput = inputs[Math.min(digits.length, inputs.length - 1)];
+                nextInput?.focus();
+            });
+        });
+    }());
+</script>
+{% endblock %}

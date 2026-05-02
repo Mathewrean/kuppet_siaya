@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - KUPPET Siaya Branch{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card">
+        <h1 class="auth-heading">Member Login</h1>
+        <p class="auth-subheading">Sign in with your TSC number and password. First-time members without a saved email should use <strong>FirstName@Last4DigitsOfTSC</strong>, then verify their email to activate OTP-based sign in.</p>
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div class="field">
+                <label for="tsc_number">TSC Number</label>
+                <input type="text" id="tsc_number" name="tsc_number" required class="text-input">
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required class="text-input">
+                <p class="help-text">After your email is verified, every login is completed with a one-time password sent to that address.</p>
+            </div>
+            <button type="submit" class="btn btn-primary w-full">Log In</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="{% url 'register' %}" class="text-link">Create an account</a>
+            <a href="{% url 'contact' %}" class="text-link">Need help?</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
