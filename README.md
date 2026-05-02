@@ -581,6 +581,8 @@ export EMAIL_HOST='smtp.example.com'
 export EMAIL_PORT=587
 export EMAIL_HOST_USER='user@example.com'
 export EMAIL_HOST_PASSWORD='password'
+export EMAIL_USE_TLS=True
+export DEFAULT_FROM_EMAIL='no-reply@your-domain.com'
 ```
 
 ## License
