@@ -85,7 +85,7 @@ class SeedMembersCommandTests(TestCase):
             bernard.refresh_from_db()
             self.assertEqual(
                 identify_hasher(bernard.password).safe_summary(bernard.password)["iterations"],
-                600000,
+                720000,
             )
 
             self.assertEqual(judith.first_name, "Judith")
