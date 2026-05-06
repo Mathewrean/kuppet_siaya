@@ -112,7 +112,19 @@ def projects(request):
 
 
 def projects_bbf(request):
-    return render(request, "core/projects_bbf.html")
+    contact_list = [
+        {'role': 'ES', 'phone': '0715773100', 'phone_display': '0715 773 100'},
+        {'role': 'AES', 'phone': '0717784691', 'phone_display': '0717 784 691'},
+        {'role': 'Chair', 'phone': '0724438387', 'phone_display': '0724 438 387'},
+        {'role': 'VC', 'phone': '0723448590', 'phone_display': '0723 448 590'},
+        {'role': 'Treasurer', 'phone': '0713660396', 'phone_display': '0713 660 396'},
+        {'role': 'AT', 'phone': '0713520704', 'phone_display': '0713 520 704'},
+        {'role': 'OS', 'phone': '0724402029', 'phone_display': '0724 402 029'},
+        {'role': 'SS', 'phone': '0702576550', 'phone_display': '0702 576 550'},
+        {'role': 'ST', 'phone': '0735213743', 'phone_display': '0735 213 743'},
+        {'role': 'SJS', 'phone': '0796089423', 'phone_display': '0796 089 423'},
+    ]
+    return render(request, "core/projects_bbf.html", {"contact_list": contact_list})
 
 
 def projects_bus(request):

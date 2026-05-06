@@ -64,9 +64,33 @@ class BBFClaim(models.Model):
     def beneficiaries_count(self):
         return self.beneficiaries.count()
     
-    def can_submit(self):
+    def can_submit_beneficiaries(self):
         """A claim can be submitted only if at least one beneficiary has a valid document."""
         return self.beneficiaries.filter(document__isnull=False).exists()
+    
+    def has_all_member_documents(self):
+        """Check if all required member documents are uploaded."""
+        required_types = ['payslip', 'national_id', 'burial_permit', 'deceased_id', 'relationship', 'introduction']
+        uploaded_types = self.claim_documents.values_list('document_type', flat=True)
+        return all(rt in uploaded_types for rt in required_types)
+    
+    def get_missing_documents(self):
+        """Return list of missing document type names."""
+        document_names = {
+            'payslip': 'Member Payslip',
+            'national_id': 'Member National ID',
+            'burial_permit': 'Deceased Burial Permit',
+            'deceased_id': 'Deceased ID or Birth Certificate or Birth Notification',
+            'relationship': 'Proof of Relationship',
+            'introduction': 'Introduction Letter from Head of Institution',
+        }
+        uploaded_types = set(self.claim_documents.values_list('document_type', flat=True))
+        missing = []
+        for doc_type in ['payslip', 'national_id', 'burial_permit', 'deceased_id', 'relationship', 'introduction']:
+            if doc_type not in uploaded_types:
+                missing.append(document_names[doc_type])
+        return missing
+
 
 class BBFBeneficiary(models.Model):
     BENEFICIARY_TYPE_CHOICES = [
@@ -124,3 +148,52 @@ class BBFBeneficiary(models.Model):
             'parent_father': 'National ID Card',
         }
         return mapping.get(self.beneficiary_type, 'Document')
+
+
+class BBFClaimDocument(models.Model):
+    DOCUMENT_TYPE_CHOICES = [
+        ('payslip', 'Member Payslip'),
+        ('national_id', 'Member National ID'),
+        ('burial_permit', 'Deceased Burial Permit'),
+        ('deceased_id', 'Deceased ID or Birth Certificate or Birth Notification'),
+        ('relationship', 'Proof of Relationship'),
+        ('introduction', 'Introduction Letter from Head of Institution'),
+    ]
+    
+    DOCUMENT_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+    
+    claim = models.ForeignKey(
+        BBFClaim,
+        on_delete=models.CASCADE,
+        related_name='claim_documents'
+    )
+    document_type = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_TYPE_CHOICES
+    )
+    file = models.FileField(upload_to='bbf_claim_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=20,
+        choices=DOCUMENT_STATUS_CHOICES,
+        default='pending'
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_claim_documents'
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        unique_together = ['claim', 'document_type']
+    
+    def __str__(self):
+        return f"{self.get_document_type_display()} - {self.claim.claim_reference}"

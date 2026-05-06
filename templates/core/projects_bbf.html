@@ -7,7 +7,7 @@
     <div class="page-shell">
         <div class="section-heading">
             <span class="section-heading__eyebrow">Project Spotlight</span>
-                <h1 class="section-heading__title">BBF — Benevolent and Burial Fund</h1>
+            <h1 class="section-heading__title">BBF — Benevolent and Burial Fund</h1>
         </div>
 
         <div class="content-grid">
@@ -30,4 +30,20 @@
         </div>
     </div>
 </section>
+
+{% include 'partials/bbf_documents_notice.html' %}
+
+{% with contacts=contact_list %}
+    {% include 'partials/bbf_contact_directory.html' %}
+{% endwith %}
+
+<div class="section-shell">
+    <div class="page-shell text-center">
+        {% if user.is_authenticated %}
+            <a href="{% url 'bbf_claims' %}" class="btn btn-primary btn-lg">Login to Submit a Claim</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">Become a Member or Login to Submit a Claim</a>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

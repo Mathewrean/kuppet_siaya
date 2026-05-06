@@ -5,6 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'claims', views.BBFClaimViewSet, basename='bbf-claims')
 router.register(r'beneficiaries', views.BBFBeneficiaryViewSet, basename='bbf-beneficiaries')
+router.register(r'claim-documents', views.BBFClaimDocumentViewSet, basename='bbf-claim-documents')
 
 urlpatterns = [
     path('', include(router.urls)),
@@ -12,6 +13,7 @@ urlpatterns = [
     path('claims/', views.BBFClaimViewSet.as_view({'get': 'list', 'post': 'create'}), name='bbf-claims-list'),
     path('claims/<int:pk>/', views.BBFClaimViewSet.as_view({'get': 'retrieve'}), name='bbf-claims-detail'),
     path('claims/<int:claim_id>/beneficiaries/', views.BBFBeneficiaryViewSet.as_view({'post': 'create'}), name='bbf-claims-add-beneficiary'),
+    path('claims/<int:claim_pk>/claim-documents/', views.BBFClaimDocumentViewSet.as_view({'get': 'list', 'post': 'create'}), name='claim-documents'),
     path('beneficiaries/<int:pk>/delete/', views.BBFBeneficiaryViewSet.as_view({'delete': 'destroy'}), name='bbf-beneficiary-delete'),
     # Subcounty endpoints
     path('subcounty/claims/', views.subcounty_claims, name='subcounty-claims'),

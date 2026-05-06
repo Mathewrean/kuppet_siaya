@@ -407,6 +407,7 @@ Use these accounts for local testing. These are example credentials for the deve
 
 - Admin / Superuser:
    - Create with: `python manage.py createsuperuser` (or use your local admin credentials)
+      username- TSC1038 mail  mathewrean@gmail.com password- 
 
 To enable rep roles in the Django shell or admin:
 ```python

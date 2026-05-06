@@ -1,6 +1,18 @@
 from rest_framework import serializers
-from .models import BBFClaim, BBFBeneficiary
+from .models import BBFClaim, BBFBeneficiary, BBFClaimDocument
 from accounts.models import CustomUser
+
+
+class BBFClaimDocumentSerializer(serializers.ModelSerializer):
+    document_type_name = serializers.CharField(source='get_document_type_display', read_only=True)
+    
+    class Meta:
+        model = BBFClaimDocument
+        fields = [
+            'id', 'document_type', 'document_type_name', 'file', 
+            'uploaded_at', 'status', 'reviewed_by', 'reviewed_at'
+        ]
+        read_only_fields = ['id', 'uploaded_at', 'status', 'reviewed_by', 'reviewed_at']
 
 
 class BBFBeneficiarySerializer(serializers.ModelSerializer):
@@ -17,19 +29,25 @@ class BBFBeneficiarySerializer(serializers.ModelSerializer):
 
 class BBFClaimSerializer(serializers.ModelSerializer):
     beneficiaries = BBFBeneficiarySerializer(many=True, read_only=True)
+    claim_documents = BBFClaimDocumentSerializer(many=True, read_only=True)
     member_name = serializers.SerializerMethodField()
+    missing_documents = serializers.SerializerMethodField()
     
     class Meta:
         model = BBFClaim
         fields = [
             'id', 'claim_reference', 'member', 'member_name', 'status',
             'submitted_at', 'updated_at', 'beneficiaries_count', 'beneficiaries',
+            'claim_documents', 'missing_documents',
             'subcounty_confirmed_at', 'county_confirmed_at'
         ]
         read_only_fields = ['id', 'claim_reference', 'status', 'submitted_at', 'updated_at']
     
     def get_member_name(self, obj):
         return obj.member.get_full_name()
+    
+    def get_missing_documents(self, obj):
+        return obj.get_missing_documents()
 
 
 class BBFClaimCreateSerializer(serializers.ModelSerializer):
@@ -85,5 +103,22 @@ class BBFBeneficiaryCreateSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         # Add claim from context
+        validated_data['claim'] = self.context['claim']
+        return super().create(validated_data)
+
+
+class BBFClaimDocumentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BBFClaimDocument
+        fields = ['document_type', 'file']
+    
+    def validate_document_type(self, value):
+        # Verify this document type is not already uploaded
+        claim = self.context['claim']
+        if BBFClaimDocument.objects.filter(claim=claim, document_type=value).exists():
+            raise serializers.ValidationError('This document type already uploaded')
+        return value
+    
+    def create(self, validated_data):
         validated_data['claim'] = self.context['claim']
         return super().create(validated_data)
