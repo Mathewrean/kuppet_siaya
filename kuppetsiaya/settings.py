@@ -21,7 +21,6 @@ ALLOWED_HOSTS = [
     "localhost",
     "0.0.0.0",
     "testserver",
-    "eafc-41-90-11-251.ngrok-free.app",
     "albert-incult-superfluously.ngrok-free.dev",
 ]
 
