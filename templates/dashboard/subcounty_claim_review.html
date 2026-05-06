@@ -6,6 +6,7 @@
 {% block dashboard_breadcrumb %}Subcounty Review / {{ object.claim_reference }}{% endblock %}
 
 {% block dashboard_content %}
+<input type="hidden" name="csrfmiddlewaretoken" value="{% csrf_token %}">
 <div class="space-y-6">
     <div class="flex items-start justify-between">
         <div>

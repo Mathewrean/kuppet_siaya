@@ -197,7 +197,7 @@ class BBFBeneficiaryViewSet(viewsets.ModelViewSet):
         
         # Check permissions
         user = request.user
-        if not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
+        if not user.is_authenticated or not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -217,7 +217,7 @@ class BBFBeneficiaryViewSet(viewsets.ModelViewSet):
         
         # Check permissions
         user = request.user
-        if not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
+        if not user.is_authenticated or not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -265,7 +265,7 @@ class BBFClaimDocumentViewSet(viewsets.ModelViewSet):
         
         # Check permissions
         user = request.user
-        if not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
+        if not user.is_authenticated or not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -286,7 +286,7 @@ class BBFClaimDocumentViewSet(viewsets.ModelViewSet):
         
         # Check permissions
         user = request.user
-        if not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
+        if not user.is_authenticated or not (user.is_subcounty_rep or user.is_county_rep or user.is_superuser):
             return Response(
                 {'error': 'Permission denied'},
                 status=status.HTTP_403_FORBIDDEN
@@ -306,7 +306,7 @@ class BBFClaimDocumentViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def subcounty_claims(request):
     """Get all claims awaiting subcounty confirmation"""
-    if not request.user.is_subcounty_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_subcounty_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN
@@ -323,7 +323,7 @@ def subcounty_claims(request):
 @permission_classes([IsAuthenticated])
 def subcounty_confirm_claim(request, pk):
     """Subcounty rep confirms a claim, moves to awaiting county"""
-    if not request.user.is_subcounty_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_subcounty_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN
@@ -376,7 +376,7 @@ def subcounty_confirm_claim(request, pk):
 @permission_classes([IsAuthenticated])
 def subcounty_reject_claim(request, pk):
     """Subcounty rep rejects a claim"""
-    if not request.user.is_subcounty_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_subcounty_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN
@@ -403,7 +403,7 @@ def subcounty_reject_claim(request, pk):
 @permission_classes([IsAuthenticated])
 def county_claims(request):
     """Get all claims awaiting county confirmation"""
-    if not request.user.is_county_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_county_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN
@@ -420,7 +420,7 @@ def county_claims(request):
 @permission_classes([IsAuthenticated])
 def county_approve_claim(request, pk):
     """County rep approves a claim"""
-    if not request.user.is_county_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_county_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN
@@ -448,7 +448,7 @@ def county_approve_claim(request, pk):
 @permission_classes([IsAuthenticated])
 def county_reject_claim(request, pk):
     """County rep rejects a claim"""
-    if not request.user.is_county_rep and not request.user.is_superuser:
+    if not request.user.is_authenticated or (not request.user.is_county_rep and not request.user.is_superuser):
         return Response(
             {'error': 'Permission denied'},
             status=status.HTTP_403_FORBIDDEN

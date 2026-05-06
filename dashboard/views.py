@@ -263,7 +263,7 @@ class SubcountyDashboardView(LoginRequiredMixin, TemplateView):
     login_url = reverse_lazy("login")
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_subcounty_rep or request.user.is_superuser):
+        if not request.user.is_authenticated or not (request.user.is_subcounty_rep or request.user.is_superuser):
             from django.contrib import messages
             messages.error(request, "Access denied. Subcounty Representative role required.")
             return redirect("dashboard")
@@ -276,7 +276,7 @@ class SubcountyClaimReviewView(LoginRequiredMixin, DetailView):
     model = BBFClaim
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_subcounty_rep or request.user.is_superuser):
+        if not request.user.is_authenticated or not (request.user.is_subcounty_rep or request.user.is_superuser):
             from django.contrib import messages
             messages.error(request, "Access denied. Subcounty Representative role required.")
             return redirect("dashboard")
@@ -295,7 +295,7 @@ class CountyDashboardView(LoginRequiredMixin, TemplateView):
     login_url = reverse_lazy("login")
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_county_rep or request.user.is_superuser):
+        if not request.user.is_authenticated or not (request.user.is_county_rep or request.user.is_superuser):
             from django.contrib import messages
             messages.error(request, "Access denied. County Representative role required.")
             return redirect("dashboard")
@@ -308,7 +308,7 @@ class CountyClaimReviewView(LoginRequiredMixin, DetailView):
     model = BBFClaim
 
     def dispatch(self, request, *args, **kwargs):
-        if not (request.user.is_county_rep or request.user.is_superuser):
+        if not request.user.is_authenticated or not (request.user.is_county_rep or request.user.is_superuser):
             from django.contrib import messages
             messages.error(request, "Access denied. County Representative role required.")
             return redirect("dashboard")
