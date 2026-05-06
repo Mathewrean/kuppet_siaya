@@ -10,5 +10,4 @@ uvicorn kuppetsiaya.asgi:application \
     --port 8000 \
     --workers 4 \
     --loop uvloop \
-    --http h11 \
-    --lifespan on
+    --http h11
