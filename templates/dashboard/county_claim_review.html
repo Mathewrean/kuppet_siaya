@@ -18,8 +18,39 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
+            <!-- Member Supporting Documents Section -->
+            <section class="eligibility-panel mb-6">
+                <h3 class="!text-lg mb-4">Member Supporting Documents</h3>
+                <div class="space-y-4" id="memberDocumentsList">
+                    {% for doc in object.claim_documents.all %}
+                        <div class="p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h4 class="font-semibold">{{ doc.get_document_type_display }}</h4>
+                                    <p class="text-sm text-[var(--gray-400)]">Uploaded: {{ doc.uploaded_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <span class="status-badge status-badge-{{ doc.status }}">{{ doc.get_status_display }}</span>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ doc.file.url }}" target="_blank" class="btn btn-secondary text-sm flex items-center gap-1 inline-block">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                    </svg>
+                                    View Document
+                                </a>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]">
+                            <p class="text-[var(--gray-400)]">No member documents uploaded.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Beneficiaries Section -->
             <section class="eligibility-panel">
-                <h3 class="!text-lg mb-4">Member Information</h3>
+                <h3 class="!text-lg mb-4">Beneficiaries</h3>
                 <dl class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt class="text-[var(--gray-400)]">Full Name</dt>
@@ -157,6 +188,20 @@ function getCSRFToken() {
 let approvePending = false;
 let rejectPending = false;
 
+function checkAllReviewed() {
+    // Check if all beneficiary docs are approved (no pending)
+    const pendingBen = document.querySelectorAll('.beneficiary-item .status-badge--muted, .beneficiary-item .status-badge--bad').length;
+    // Check if all member docs are approved
+    const pendingDocs = document.querySelectorAll('#memberDocumentsList .status-badge--muted, #memberDocumentsList .status-badge--bad').length;
+    
+    const approveBtn = document.getElementById('approveClaimBtn');
+    if (pendingBen === 0 && pendingDocs === 0) {
+        approveBtn.disabled = false;
+    } else {
+        approveBtn.disabled = true;
+    }
+}
+
 function approveClaim() {
     document.getElementById('approveModal').classList.remove('hidden');
 }
@@ -211,6 +256,7 @@ function doRejectClaim() {
         window.location.href = '{% url "county-claims" %}';
     }).catch(err => {
         alert('Error: ' + (err.message || 'Failed to reject claim'));
+        btn.disabled = false;
         rejectPending = false;
     });
 }
@@ -220,5 +266,8 @@ document.addEventListener('keydown', (e) => {
         closeModal();
     }
 });
+
+// Initialize
+checkAllReviewed();
 </script>
 {% endblock %}

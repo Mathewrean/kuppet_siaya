@@ -18,8 +18,57 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-2">
+            <!-- Member Supporting Documents Section -->
+            <section class="eligibility-panel mb-6">
+                <h3 class="!text-lg mb-4">Member Supporting Documents</h3>
+                <div class="space-y-4" id="memberDocumentsList">
+                    {% for doc in object.claim_documents.all %}
+                        <div class="document-review-item p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]" data-doc-id="{{ doc.id }}">
+                            <div class="flex items-start justify-between mb-2">
+                                <div>
+                                    <h4 class="font-semibold">{{ doc.get_document_type_display }}</h4>
+                                    <p class="text-sm text-[var(--gray-400)]">Uploaded: {{ doc.uploaded_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <span class="status-badge status-badge-{{ doc.status }}">{{ doc.get_status_display }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <a href="{{ doc.file.url }}" target="_blank" class="btn btn-secondary text-sm flex items-center gap-1">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+                                    </svg>
+                                    View Document
+                                </a>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-[var(--gray-700)] flex gap-2">
+                                <button onclick="approveDocument({{ doc.id }}, this)" 
+                                    class="btn btn-success text-sm flex-1 {% if doc.status != 'pending' %}opacity-50 cursor-not-allowed{% endif %}"
+                                    {% if doc.status != 'pending' %}disabled{% endif %}>
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l4 4L19 6"></path>
+                                    </svg>
+                                    Approve
+                                </button>
+                                <button onclick="rejectDocument({{ doc.id }}, this)" 
+                                    class="btn btn-danger text-sm flex-1 {% if doc.status != 'pending' %}opacity-50 cursor-not-allowed{% endif %}"
+                                    {% if doc.status != 'pending' %}disabled{% endif %}>
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Reject
+                                </button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="p-4 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]">
+                            <p class="text-[var(--gray-400)]">No member documents uploaded.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Beneficiaries Review Section -->
             <section class="eligibility-panel">
-                <h3 class="!text-lg mb-4">Member Information</h3>
+                <h3 class="!text-lg mb-4">Beneficiaries Review</h3>
                 <dl class="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <dt class="text-[var(--gray-400)]">Full Name</dt>
@@ -183,6 +232,7 @@ function approveBeneficiary(benId, btn) {
         badge.textContent = 'Approved';
         btn.disabled = true;
         btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+        checkAllReviewed();
     });
 }
 
@@ -201,6 +251,45 @@ function rejectBeneficiary(benId, btn) {
         badge.textContent = 'Rejected';
         btn.disabled = true;
         btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+        checkAllReviewed();
+    });
+}
+
+function approveDocument(docId, btn) {
+    fetch(`/api/bbf/claim-documents/${docId}/approve/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCSRFToken()
+        }
+    }).then(r => r.json())
+    .then(data => {
+        const item = btn.closest('.document-review-item');
+        const badge = item.querySelector('.status-badge');
+        badge.className = 'status-badge status-badge--good';
+        badge.textContent = 'Approved';
+        btn.disabled = true;
+        btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+        checkAllReviewed();
+    });
+}
+
+function rejectDocument(docId, btn) {
+    fetch(`/api/bbf/claim-documents/${docId}/reject/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCSRFToken()
+        }
+    }).then(r => r.json())
+    .then(data => {
+        const item = btn.closest('.document-review-item');
+        const badge = item.querySelector('.status-badge');
+        badge.className = 'status-badge status-badge--bad';
+        badge.textContent = 'Rejected';
+        btn.disabled = true;
+        btn.closest('.flex').querySelectorAll('button').forEach(b => b.disabled = true);
+        checkAllReviewed();
     });
 }
 
@@ -210,6 +299,20 @@ function getCSRFToken() {
 
 let confirmClaimPending = false;
 let rejectClaimPending = false;
+
+function checkAllReviewed() {
+    // Check if all beneficiary docs are approved (no pending)
+    const pendingBen = document.querySelectorAll('#beneficiariesList .status-badge--muted, #beneficiariesList .status-badge--bad').length;
+    // Check if all member docs are approved (no pending)
+    const pendingDocs = document.querySelectorAll('#memberDocumentsList .status-badge--muted, #memberDocumentsList .status-badge--bad').length;
+    
+    const confirmBtn = document.getElementById('confirmClaimBtn');
+    if (pendingBen === 0 && pendingDocs === 0) {
+        confirmBtn.disabled = false;
+    } else {
+        confirmBtn.disabled = true;
+    }
+}
 
 function confirmClaim() {
     document.getElementById('confirmModal').classList.remove('hidden');
@@ -265,6 +368,7 @@ function doRejectClaim() {
         window.location.href = '{% url "subcounty-claims" %}';
     }).catch(err => {
         alert('Error: ' + (err.message || 'Failed to reject claim'));
+        btn.disabled = false;
         rejectClaimPending = false;
     });
 }
@@ -274,5 +378,8 @@ document.addEventListener('keydown', (e) => {
         closeModal();
     }
 });
+
+// Initialize button state
+checkAllReviewed();
 </script>
 {% endblock %}

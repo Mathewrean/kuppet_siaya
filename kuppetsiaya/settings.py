@@ -113,6 +113,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.bbf_contacts',
             ],
         },
     },
@@ -159,8 +160,11 @@ AUTH_PASSWORD_VALIDATORS = [
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_SECURE = True  # Required for HTTPS
 CSRF_COOKIE_HTTPONLY = False
+CSRF_TRUSTED_ORIGINS = [
+    'https://albert-incult-superfluously.ngrok-free.dev',
+]
 
 # Session idle timeout (2 minutes = 120 seconds)
 SESSION_COOKIE_AGE = 120

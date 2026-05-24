@@ -152,18 +152,20 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         return reverse('bbf_claims')
 
     def post(self, request, *args, **kwargs):
-        # Handle claim creation with beneficiaries via JavaScript FormData
+        # Handle claim creation with beneficiaries AND member documents via JavaScript FormData
         # Parse beneficiaries from request.POST and request.FILES
         # Expected format: beneficiaries-{index}-type, beneficiaries-{index}-name, beneficiaries-{index}-document
+        # Also: member_doc_{doc_type} for member documents
+        from django.http import JsonResponse
+        from django.urls import reverse
+        from django.contrib import messages
         
         beneficiaries_data = {}
         for key, value in request.POST.items():
             if key.startswith('beneficiaries-'):
-                # Extract index and field name
                 parts = key.split('-')
                 if len(parts) == 3:
                     idx, field = parts[1], parts[2]
-                    # Map field names to serializer field names
                     if field == 'type':
                         field = 'beneficiary_type'
                     elif field == 'name':
@@ -172,7 +174,8 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                         beneficiaries_data[idx] = {}
                     beneficiaries_data[idx][field] = value
         
-        # Handle file uploads - Django stores uploaded files in request.FILES
+        # Handle file uploads - separate beneficiary files and member files
+        member_doc_files = {}
         for key, uploaded_file in request.FILES.items():
             if key.startswith('beneficiaries-'):
                 parts = key.split('-')
@@ -185,39 +188,76 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                     if idx not in beneficiaries_data:
                         beneficiaries_data[idx] = {}
                     beneficiaries_data[idx][field] = uploaded_file
+            elif key.startswith('member_doc_'):
+                doc_type = key.replace('member_doc_', '')
+                member_doc_files[doc_type] = uploaded_file
         
         # Convert to list sorted by index
         sorted_indices = sorted(beneficiaries_data.keys(), key=int)
         beneficiaries_list = [beneficiaries_data[idx] for idx in sorted_indices]
         
-        from django.contrib import messages
+        # Validate member documents
+        required_member_doc_types = ['payslip', 'national_id', 'burial_permit', 'deceased_id', 'relationship', 'introduction']
+        missing_member_docs = []
+        for doc_type in required_member_doc_types:
+            if doc_type not in member_doc_files or not member_doc_files[doc_type]:
+                missing_member_docs.append(doc_type.replace('_', ' ').title())
         
+        if missing_member_docs:
+            msg = 'Missing member documents: ' + ', '.join(missing_member_docs)
+            messages.error(request, msg)
+            return JsonResponse({'error': msg, 'missing_documents': missing_member_docs}, status=400)
+        
+        # Validate beneficiary documents
         if not beneficiaries_list:
-            messages.error(request, 'At least one beneficiary must have a document uploaded.')
-            return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
+            msg = 'At least one beneficiary with document is required'
+            messages.error(request, msg)
+            return JsonResponse({'error': msg}, status=400)
         
-        # Check if any beneficiary has a document uploaded
         has_document = False
         for ben_data in beneficiaries_list:
             if 'document' in ben_data and ben_data['document']:
-                # Check file size (max 10MB)
-                if ben_data['document'].size > 10 * 1024 * 1024:
-                    messages.error(request, f'File size exceeds 10MB limit for {ben_data.get("full_name", "beneficiary")}.')
-                    return JsonResponse({'error': f'File size exceeds 10MB limit for {ben_data.get("full_name", "beneficiary")}.'}, status=400)
+                if ben_data['document'].size > 5 * 1024 * 1024:
+                    msg = f'File size exceeds 5MB for {ben_data.get("full_name", "beneficiary")}.'
+                    messages.error(request, msg)
+                    return JsonResponse({'error': msg}, status=400)
                 has_document = True
         
         if not has_document:
-            messages.error(request, 'At least one beneficiary must have a document uploaded.')
-            return JsonResponse({'error': 'At least one beneficiary must have a document uploaded.'}, status=400)
+            msg = 'At least one beneficiary must have a document uploaded.'
+            messages.error(request, msg)
+            return JsonResponse({'error': msg}, status=400)
         
-        # Create a claim first
+        # Validate member document file types and sizes
+        for doc_type, file in member_doc_files.items():
+            if file.size > 5 * 1024 * 1024:
+                msg = f'File size exceeds 5MB for {doc_type}.'
+                messages.error(request, msg)
+                return JsonResponse({'error': msg}, status=400)
+            allowed = ['application/pdf', 'image/jpeg', 'image/png']
+            if file.content_type not in allowed:
+                msg = f'Invalid file type for {doc_type}. Allowed: PDF, JPG, PNG'
+                messages.error(request, msg)
+                return JsonResponse({'error': msg}, status=400)
+        
+        # Create claim
         claim = BBFClaim(member=request.user, status='pending')
         claim.save()
         
-        # Create beneficiaries using the serializer for validation
+        # Create member claim documents
+        from bbf.models import BBFClaimDocument
+        for doc_type, file in member_doc_files.items():
+            BBFClaimDocument.objects.create(
+                claim=claim,
+                document_type=doc_type,
+                file=file,
+                status='pending',
+                is_verified=False
+            )
+        
+        # Create beneficiaries
         created_beneficiaries = []
         errors = []
-        
         for ben_data in beneficiaries_list:
             serializer = BBFBeneficiaryCreateSerializer(
                 data=ben_data,
@@ -236,12 +276,11 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
                 messages.error(request, error)
             return JsonResponse({'error': errors}, status=400)
         
-        # Update claim status to awaiting_subcounty
+        # Submit the claim (set status)
         claim.status = 'awaiting_subcounty'
         claim.save()
         
-        # Create notification
-        from bbf.views import create_notification
+        # Notification
         create_notification(
             request.user,
             'BBF Claim Submitted',
@@ -250,7 +289,7 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         )
         
         messages.success(request, f'Claim {claim.claim_reference} submitted successfully.')
-        return JsonResponse({'id': claim.id, 'redirect_url': reverse('bbf_claim_detail', kwargs={'pk': claim.id})})
+        return JsonResponse({'id': claim.id, 'redirect_url': reverse('bbf_claims')})
 
 
 

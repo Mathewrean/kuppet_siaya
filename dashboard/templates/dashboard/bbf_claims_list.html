@@ -3,6 +3,9 @@
 {% block title %}BBF Claims{% endblock %}
 {% block content %}
 <div class="container-fluid py-4">
+  <!-- Required Documents Notice -->
+  {% include 'partials/bbf_documents_notice.html' %}
+  
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">BBF Claims</h2>
     <a href="{% url 'bbf_claim_create' %}" class="btn btn-primary">
@@ -53,5 +56,10 @@
       </table>
     </div>
   </div>
+  
+  <!-- Contact Directory -->
+  {% with contacts=contact_list %}
+    {% include 'partials/bbf_contact_directory.html' %}
+  {% endwith %}
 </div>
 {% endblock %}

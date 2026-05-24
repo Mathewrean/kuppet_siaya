@@ -3,6 +3,9 @@
 {% block title %}New BBF Claim{% endblock %}
 {% block content %}
 <div class="container-fluid py-4">
+  <!-- Required Documents Notice -->
+  {% include 'partials/bbf_documents_notice.html' %}
+  
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0">New BBF Claim</h2>
     <a href="{% url 'bbf_claims' %}" class="btn btn-outline-secondary">Back</a>
@@ -11,6 +14,81 @@
     <div class="card-body">
       <form id="claimForm" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        
+        <!-- Member Supporting Documents Section -->
+        <div class="border p-4 mb-4 bg-light">
+          <h4 class="mb-3">Your Supporting Documents</h4>
+          <p class="text-muted mb-4">Please upload all required documents. All files must be PDF, JPG, or PNG (max 5MB each).</p>
+          
+          <div class="row g-3" id="memberDocumentsSection">
+            <!-- Member Payslip -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Member Payslip <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="payslip">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="payslip">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Member National ID -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Member National ID <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="national_id">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="national_id">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Deceased Burial Permit -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Deceased Burial Permit <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="burial_permit">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="burial_permit">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Deceased ID or Birth Certificate -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Deceased ID or Birth Certificate <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="deceased_id">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="deceased_id">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Proof of Relationship -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Proof of Relationship <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="relationship">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="relationship">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Introduction Letter -->
+            <div class="col-md-6 col-lg-4">
+              <label class="form-label fw-bold">Introduction Letter from Head of Institution <span class="text-danger">*</span></label>
+              <div class="upload-field" data-doc-type="introduction">
+                <input type="file" class="form-control form-control-sm member-doc-input" accept=".pdf,.jpg,.jpeg,.png" data-doc-type="introduction">
+                <div class="mt-2 upload-status">
+                  <span class="status-badge status-badge--muted">Not Uploaded</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
           <!-- Children -->
           <div class="col-md-6">
@@ -26,7 +104,7 @@
           <div class="col-md-6">
             <div class="border p-3 mb-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Spouse <span class="badge bg-secondary" id="spouseCount">0/1</span></h5>
+                <h5 class="mb-0">Spouse <span class="badge bg-secondary" id="spouseCount">0/1</span></h>
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('spouse')">Add Spouse</button>
               </div>
               <div id="spouseContainer"></div>
@@ -36,7 +114,7 @@
           <div class="col-md-6">
             <div class="border p-3 mb-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Mother <span class="badge bg-secondary" id="motherCount">0/1</span></h5>
+                <h5 class="mb-0">Mother <span class="badge bg-secondary" id="motherCount">0/1</span></h>
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('parent_mother')">Add Mother</button>
               </div>
               <div id="motherContainer"></div>
@@ -46,31 +124,46 @@
           <div class="col-md-6">
             <div class="border p-3 mb-3">
               <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="mb-0">Father <span class="badge bg-secondary" id="fatherCount">0/1</span></h5>
+                <h5 class="mb-0">Father <span class="badge bg-secondary" id="fatherCount">0/1</span></h>
                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="addBeneficiary('parent_father')">Add Father</button>
               </div>
               <div id="fatherContainer"></div>
             </div>
           </div>
         </div>
+        
         <div class="alert alert-danger d-none" id="formError"></div>
         <div class="d-flex gap-3">
-          <button type="submit" class="btn btn-primary" id="submitBtn">Submit Claim</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn" disabled>Submit Claim</button>
           <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Cancel</a>
         </div>
+        <small class="text-muted" id="submitHint">Complete all member documents and add at least one beneficiary with document to enable submission.</small>
       </form>
     </div>
   </div>
+  
+  <!-- Contact Directory -->
+  {% with contacts=contact_list %}
+    {% include 'partials/bbf_contact_directory.html' %}
+  {% endwith %}
 </div>
-</div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 let childIdx = 0, spouseIdx = 0, motherIdx = 0, fatherIdx = 0;
+let memberDocsUploaded = {
+  payslip: false,
+  national_id: false,
+  burial_permit: false,
+  deceased_id: false,
+  relationship: false,
+  introduction: false
+};
 
 function addBeneficiary(type) {
   let container, countEl, max, idx;
   
-  // Determine which container and counter to use based on type
   switch(type) {
     case 'child':
       container = document.getElementById('childrenContainer');
@@ -101,13 +194,11 @@ function addBeneficiary(type) {
       return;
   }
   
-  // Check if we've reached the maximum
   if (container.querySelectorAll('.beneficiary-card').length >= max) {
     alert(`Maximum of ${max} ${type} beneficiaries allowed.`);
     return;
   }
   
-  // Create the beneficiary card
   const card = document.createElement('div');
   card.className = 'beneficiary-card card mb-2 p-2';
   card.innerHTML = `
@@ -119,18 +210,25 @@ function addBeneficiary(type) {
       </div>
       <div class="col-md-5">
         <label class="form-label">Document (${getParentDocType(type)})</label>
-        <input type="file" name="beneficiaries-${idx}-document" class="form-control" required accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-        <small class="text-muted">Max file size: 10MB</small>
+        <input type="file" name="beneficiaries-${idx}-document" class="form-control beneficiary-doc-input" required accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+        <small class="text-muted">Max file size: 5MB</small>
       </div>
       <div class="col-md-2 d-flex align-items-end">
-        <button type="button" class="btn btn-sm btn-danger" onclick="this.closest('.beneficiary-card').remove();updateCounts()">Remove</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="removeBeneficiary(this)">Remove</button>
       </div>
     </div>
-    <div class="invalid-feedback d-block mt-1"></div>
+    <div class="invalid-feedback d-block mt-1 beneficiary-status"></div>
   `;
   
   container.appendChild(card);
   updateCounts();
+  updateSubmitButton();
+}
+
+function removeBeneficiary(btn) {
+  btn.closest('.beneficiary-card').remove();
+  updateCounts();
+  updateSubmitButton();
 }
 
 function getParentDocType(type) {
@@ -150,55 +248,88 @@ function updateCounts() {
   document.getElementById('fatherCount').textContent = document.querySelectorAll('#fatherContainer .beneficiary-card').length + '/1';
 }
 
-// Form submission handler
+function updateMemberDocStatus(docType, status) {
+  memberDocsUploaded[docType] = status;
+  updateSubmitButton();
+}
+
+function updateSubmitButton() {
+  const allMemberDocs = Object.values(memberDocsUploaded).every(v => v === true);
+  const hasBeneficiaryDoc = document.querySelectorAll('.beneficiary-card').length > 0 &&
+    Array.from(document.querySelectorAll('.beneficiary-doc-input')).every(input => input.files.length > 0);
+  
+  document.getElementById('submitBtn').disabled = !(allMemberDocs && hasBeneficiaryDoc);
+  
+  const hint = document.getElementById('submitHint');
+  if (!allMemberDocs) {
+    hint.textContent = 'Missing: Upload all 6 member supporting documents.';
+  } else if (!hasBeneficiaryDoc) {
+    hint.textContent = 'Missing: Add at least one beneficiary and upload their document.';
+  } else {
+    hint.textContent = 'All documents uploaded. Ready to submit.';
+  }
+}
+
+// Member document upload handler
+async function uploadMemberDocument(docType, file, statusEl) {
+  // First we need to create the claim to get an ID, then upload docs.
+  // We'll handle this during form submission instead.
+  // For now, just track local status.
+  // We'll actually upload during form submission.
+}
+
+// Form submission
 document.getElementById('claimForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const form = e.target;
   const formData = new FormData(form);
   
-  // Check if at least one document is uploaded
-  let hasDoc = false;
-  for (let [key, value] of formData.entries()) {
-    if (key.includes('document') && value) {
-      hasDoc = true;
-      break;
+  // Add member documents to FormData with correct field names
+  const memberDocInputs = document.querySelectorAll('.member-doc-input');
+  for (const input of memberDocInputs) {
+    const docType = input.getAttribute('data-doc-type');
+    if (input.files.length > 0) {
+      formData.append(`member_doc_${docType}`, input.files[0]);
+    } else {
+      // Already checked below, but this ensures proper naming
     }
   }
   
-  if (!hasDoc) {
-    document.getElementById('formError').textContent = 'At least one beneficiary must have a document uploaded.';
-    document.getElementById('formError').classList.remove('d-none');
-    return;
-  }
-  
-  // Check file sizes (max 10MB)
-  for (let [key, value] of formData.entries()) {
-    if (key.includes('document') && value && value.size > 10 * 1024 * 1024) {
-      document.getElementById('formError').textContent = 'File size exceeds 10MB limit.';
-      document.getElementById('formError').classList.remove('d-none');
+  // Validate member documents
+  for (const input of memberDocInputs) {
+    if (!input.files.length) {
+      showError('Please upload all required member documents.');
       return;
     }
   }
   
-  // CSRF token for Django
-  function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-      const cookies = document.cookie.split(';');
-      for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i].trim();
-        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
+  // Validate beneficiary documents
+  const benDocInputs = document.querySelectorAll('.beneficiary-doc-input');
+  for (const input of benDocInputs) {
+    if (!input.files.length) {
+      showError('Please upload documents for all beneficiaries.');
+      return;
     }
-    return cookieValue;
+  }
+  
+  // Validate file sizes (5MB) and types for all files
+  for (const input of [...memberDocInputs, ...benDocInputs]) {
+    const file = input.files[0];
+    if (file.size > 5 * 1024 * 1024) {
+      showError('File size exceeds 5MB limit: ' + input.name);
+      return;
+    }
+    const allowed = ['application/pdf', 'image/jpeg', 'image/png'];
+    if (!allowed.includes(file.type)) {
+      showError('Invalid file type. Allowed: PDF, JPG, PNG');
+      return;
+    }
   }
   
   const csrftoken = getCookie('csrftoken');
-  document.getElementById('submitBtn').disabled = true;
-  document.getElementById('submitBtn').textContent = 'Submitting...';
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
   
   try {
     const response = await fetch(form.action, {
@@ -214,16 +345,71 @@ document.getElementById('claimForm').addEventListener('submit', async (e) => {
       window.location.href = data.redirect_url || `/dashboard/bbf-claims/${data.id}/`;
     } else {
       const error = await response.json();
-      document.getElementById('formError').textContent = error.error || 'Submission failed. Please try again.';
-      document.getElementById('formError').classList.remove('d-none');
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').textContent = 'Submit Claim';
+      showError(error.error || 'Submission failed. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Claim';
     }
   } catch (error) {
-    document.getElementById('formError').textContent = 'Network error. Please check your connection.';
-    document.getElementById('formError').classList.remove('d-none');
-    document.getElementById('submitBtn').disabled = false;
-    document.getElementById('submitBtn').textContent = 'Submit Claim';
+    showError('Network error. Please check your connection.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Claim';
+  }
+});
+    
+    if (response.ok) {
+      const data = await response.json();
+      window.location.href = data.redirect_url || `/dashboard/bbf-claims/${data.id}/`;
+    } else {
+      const error = await response.json();
+      showError(error.error || 'Submission failed. Please try again.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Claim';
+    }
+  } catch (error) {
+    showError('Network error. Please check your connection.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Claim';
+  }
+});
+
+function showError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.classList.remove('d-none');
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Real-time validation and status update
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('beneficiary-doc-input') || e.target.classList.contains('member-doc-input')) {
+    updateSubmitButton();
+    
+    // Update status text for member docs
+    if (e.target.classList.contains('member-doc-input')) {
+      const docType = e.target.getAttribute('data-doc-type');
+      const statusEl = e.target.closest('.upload-field').querySelector('.upload-status');
+      if (e.target.files.length > 0) {
+        statusEl.innerHTML = `<span class="status-badge status-badge--good">Uploaded: ${e.target.files[0].name}</span>`;
+        updateMemberDocStatus(docType, true);
+      } else {
+        statusEl.innerHTML = `<span class="status-badge status-badge--muted">Not Uploaded</span>`;
+        updateMemberDocStatus(docType, false);
+      }
+    }
   }
 });
 </script>
