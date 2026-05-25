@@ -160,16 +160,18 @@ AUTH_PASSWORD_VALIDATORS = [
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
-CSRF_COOKIE_SECURE = True  # Required for HTTPS
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = [
     'https://albert-incult-superfluously.ngrok-free.dev',
+    'http://127.0.0.1:8010',
+    'http://localhost:8010',
 ]
 
-# Session idle timeout (2 minutes = 120 seconds)
-SESSION_COOKIE_AGE = 120
+# Session idle timeout (4 minutes = 240 seconds)
+SESSION_COOKIE_AGE = 240
 SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
