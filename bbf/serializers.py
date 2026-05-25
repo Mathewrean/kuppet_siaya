@@ -98,6 +98,13 @@ class BBFBeneficiaryCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'document': f'Document required for {dict(BBFBeneficiary.BENEFICIARY_TYPE_CHOICES).get(beneficiary_type, "beneficiary")}'
             })
+
+        document = data.get('document')
+        allowed_types = {'application/pdf', 'image/jpeg', 'image/png'}
+        if getattr(document, 'size', 0) > 5 * 1024 * 1024:
+            raise serializers.ValidationError({'document': 'Document size must not exceed 5MB.'})
+        if getattr(document, 'content_type', '') not in allowed_types:
+            raise serializers.ValidationError({'document': 'Invalid file type. Allowed: PDF, JPG, PNG.'})
         
         return data
     
@@ -117,6 +124,14 @@ class BBFClaimDocumentCreateSerializer(serializers.ModelSerializer):
         claim = self.context['claim']
         if BBFClaimDocument.objects.filter(claim=claim, document_type=value).exists():
             raise serializers.ValidationError('This document type already uploaded')
+        return value
+
+    def validate_file(self, value):
+        allowed_types = {'application/pdf', 'image/jpeg', 'image/png'}
+        if getattr(value, 'size', 0) > 5 * 1024 * 1024:
+            raise serializers.ValidationError('Document size must not exceed 5MB.')
+        if getattr(value, 'content_type', '') not in allowed_types:
+            raise serializers.ValidationError('Invalid file type. Allowed: PDF, JPG, PNG.')
         return value
     
     def create(self, validated_data):

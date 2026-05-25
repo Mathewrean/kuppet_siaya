@@ -38,7 +38,7 @@ class BBFClaimViewSet(viewsets.ModelViewSet):
         return BBFClaim.objects.filter(member=self.request.user).order_by('-submitted_at')
     
     def create(self, request, *args, **kwargs):
-        # First create the claim
+        # Create a pending claim first; submission happens through the dedicated submit action
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         claim = serializer.save()
@@ -62,18 +62,6 @@ class BBFClaimViewSet(viewsets.ModelViewSet):
                 {'error': 'At least one beneficiary with document is required'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Update claim status to awaiting_subcounty
-        claim.status = 'awaiting_subcounty'
-        claim.save()
-        
-        # Create notification
-        create_notification(
-            request.user,
-            'BBF Claim Submitted',
-            f'Your BBF claim {claim.claim_reference} has been submitted.',
-            claim
-        )
         
         return Response(
             BBFClaimSerializer(claim).data,
@@ -135,6 +123,13 @@ class BBFClaimViewSet(viewsets.ModelViewSet):
         # Submit the claim
         claim.status = 'awaiting_subcounty'
         claim.save()
+
+        create_notification(
+            request.user,
+            'BBF Claim Submitted',
+            f'Your BBF claim {claim.claim_reference} has been submitted.',
+            claim
+        )
         
         return Response(BBFClaimSerializer(claim).data)
 
@@ -145,10 +140,17 @@ class BBFBeneficiaryViewSet(viewsets.ModelViewSet):
     serializer_class = BBFBeneficiarySerializer
     
     def get_queryset(self):
-        # Only show beneficiaries from user's own claims
-        return BBFBeneficiary.objects.filter(
-            claim__member=self.request.user
-        )
+        queryset = BBFBeneficiary.objects.select_related("claim", "claim__member")
+        claim_id = self.kwargs.get("claim_id") or self.kwargs.get("claim_pk")
+        if claim_id:
+            queryset = queryset.filter(claim_id=claim_id)
+
+        user = self.request.user
+        if user.is_superuser or user.is_county_rep:
+            return queryset
+        if user.is_subcounty_rep:
+            return queryset.filter(claim__member__sub_county=user.sub_county)
+        return queryset.filter(claim__member=user)
     
     def destroy(self, request, *args, **kwargs):
         beneficiary = self.get_object()
@@ -237,13 +239,20 @@ class BBFClaimDocumentViewSet(viewsets.ModelViewSet):
     serializer_class = BBFClaimDocumentSerializer
     
     def get_queryset(self):
-        # Only show claim documents for user's own claims
-        return BBFClaimDocument.objects.filter(
-            claim__member=self.request.user
-        )
+        queryset = BBFClaimDocument.objects.select_related("claim", "claim__member")
+        claim_pk = self.kwargs.get("claim_pk") or self.kwargs.get("claim_id")
+        if claim_pk:
+            queryset = queryset.filter(claim_id=claim_pk)
+
+        user = self.request.user
+        if user.is_superuser or user.is_county_rep:
+            return queryset
+        if user.is_subcounty_rep:
+            return queryset.filter(claim__member__sub_county=user.sub_county)
+        return queryset.filter(claim__member=user)
     
     def create(self, request, *args, **kwargs):
-        claim_id = self.kwargs.get('claim_pk')
+        claim_id = self.kwargs.get("claim_pk") or self.kwargs.get("claim_id")
         claim = get_object_or_404(BBFClaim, pk=claim_id, member=request.user)
         
         serializer = BBFClaimDocumentCreateSerializer(
@@ -312,9 +321,10 @@ def subcounty_claims(request):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    claims = BBFClaim.objects.filter(
-        status='awaiting_subcounty'
-    ).order_by('-submitted_at')
+    claims = BBFClaim.objects.filter(status='awaiting_subcounty')
+    if not request.user.is_superuser:
+        claims = claims.filter(member__sub_county=request.user.sub_county)
+    claims = claims.order_by('-submitted_at')
     
     return Response(BBFClaimSerializer(claims, many=True).data)
 
@@ -329,7 +339,10 @@ def subcounty_confirm_claim(request, pk):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    claim = get_object_or_404(BBFClaim, pk=pk, status='awaiting_subcounty')
+    claim_queryset = BBFClaim.objects.filter(pk=pk, status='awaiting_subcounty')
+    if not request.user.is_superuser:
+        claim_queryset = claim_queryset.filter(member__sub_county=request.user.sub_county)
+    claim = get_object_or_404(claim_queryset)
     
     # Check all beneficiary documents have been reviewed
     pending_beneficiary_docs = claim.beneficiaries.filter(document_status='pending')
@@ -382,7 +395,10 @@ def subcounty_reject_claim(request, pk):
             status=status.HTTP_403_FORBIDDEN
         )
     
-    claim = get_object_or_404(BBFClaim, pk=pk, status='awaiting_subcounty')
+    claim_queryset = BBFClaim.objects.filter(pk=pk, status='awaiting_subcounty')
+    if not request.user.is_superuser:
+        claim_queryset = claim_queryset.filter(member__sub_county=request.user.sub_county)
+    claim = get_object_or_404(claim_queryset)
     
     claim.status = 'rejected'
     claim.save()
@@ -427,6 +443,22 @@ def county_approve_claim(request, pk):
         )
     
     claim = get_object_or_404(BBFClaim, pk=pk, status='awaiting_county')
+
+    pending_beneficiary_docs = claim.beneficiaries.filter(document_status='pending')
+    pending_claim_docs = claim.claim_documents.filter(status='pending')
+    if pending_beneficiary_docs.exists() or pending_claim_docs.exists():
+        return Response(
+            {'error': 'All member and beneficiary documents must be reviewed before approval'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    rejected_beneficiary_docs = claim.beneficiaries.filter(document_status='rejected')
+    rejected_claim_docs = claim.claim_documents.filter(status='rejected')
+    if rejected_beneficiary_docs.exists() or rejected_claim_docs.exists():
+        return Response(
+            {'error': 'Cannot approve a claim with rejected supporting documents'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     claim.status = 'approved'
     claim.county_confirmed_at = timezone.now()

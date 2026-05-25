@@ -1,13 +1,11 @@
 #!/bin/bash
-# Start the application with Uvicorn ASGI server for concurrent request handling
+set -e
 
-# Kill any existing uvicorn processes
-pkill -f "uvicorn kuppetsiaya.asgi" 2>/dev/null || true
+# Local startup helper for this project only.
+# Uses a dedicated default port to avoid collisions with other local Django/Vite projects.
 
-# Start Uvicorn with multiple workers for concurrent requests
-uvicorn kuppetsiaya.asgi:application \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --workers 4 \
-    --loop uvloop \
-    --http h11
+HOST="${HOST:-127.0.0.1}"
+PORT="${PORT:-8010}"
+
+echo "Starting KUPPET Siaya on http://${HOST}:${PORT}"
+python manage.py runserver "${HOST}:${PORT}"

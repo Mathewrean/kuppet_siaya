@@ -142,6 +142,47 @@
 
     <!-- Beneficiaries Table -->
     <section>
+        <h3 class="!text-lg mb-4">Member Supporting Documents</h3>
+        <div class="table-shell">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Uploaded</th>
+                        <th>Status</th>
+                        <th>File</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in object.claim_documents.all %}
+                        <tr>
+                            <td class="font-medium">{{ doc.get_document_type_display }}</td>
+                            <td>{{ doc.uploaded_at|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if doc.status == 'approved' %}
+                                    <span class="status-badge status-badge--good">Verified</span>
+                                {% elif doc.status == 'rejected' %}
+                                    <span class="status-badge status-badge--bad">Rejected</span>
+                                {% else %}
+                                    <span class="status-badge status-badge--pending">Uploaded and Pending Verification</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ doc.file.url }}" target="_blank" rel="noopener" class="text-link">Open</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-[var(--gray-500)]">No member claim documents uploaded.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Beneficiaries Table -->
+    <section>
         <h3 class="!text-lg mb-4">Beneficiaries</h3>
         <div class="table-shell">
             <table class="data-table">

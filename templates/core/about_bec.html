@@ -14,13 +14,20 @@
             <div class="committee-grid">
                 {% for member in members %}
                     <article class="member-card">
-                        {% if member.photo %}
-                            <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="member-card__avatar">
-                        {% else %}
-                            <div class="member-card__placeholder">{{ member.name|slice:":1" }}</div>
-                        {% endif %}
-                        <h3 class="member-card__name">{{ member.name }}</h3>
-                        <p class="member-card__title">{{ member.title }}</p>
+                        <div class="member-card__media">
+                            {% if member.photo %}
+                                <img src="{{ member.photo.url }}" alt="{{ member.name }}" class="member-card__avatar">
+                            {% else %}
+                                <div class="member-card__placeholder" aria-hidden="true">
+                                    <span>{{ member.name|slice:":1" }}</span>
+                                    <small>{{ member.title|slice:":2"|upper }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="member-card__body">
+                            <h3 class="member-card__name">{{ member.name }}</h3>
+                            <p class="member-card__title">{{ member.title }}</p>
+                        </div>
                     </article>
                 {% endfor %}
             </div>

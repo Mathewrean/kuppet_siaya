@@ -18,6 +18,7 @@ from .authentication import (
     start_account_initialization,
     validate_otp_code,
 )
+from .constants import VALID_SUBCOUNTIES, is_valid_subcounty, normalize_subcounty_name
 from .models import CustomUser, LegacyTeacher, School, SubCounty
 
 
@@ -26,8 +27,16 @@ def register(request):
         tsc_number = request.POST["tsc_number"]
         email = request.POST.get("email", "").strip() or None
         phone_number = request.POST.get("phone_number", "")
-        sub_county = request.POST.get("sub_county", "")
+        sub_county = normalize_subcounty_name(request.POST.get("sub_county", ""))
         school = request.POST.get("school", "")
+
+        if not is_valid_subcounty(sub_county):
+            messages.error(request, "Please choose a valid Siaya sub-county.")
+            return redirect("register")
+
+        if not School.objects.filter(name=school, sub_county__name=sub_county, sub_county__name__in=VALID_SUBCOUNTIES).exists():
+            messages.error(request, "Please choose a school from the selected Siaya sub-county.")
+            return redirect("register")
 
         try:
             teacher = LegacyTeacher.objects.using("legacy").get(tsc_number=tsc_number)
@@ -264,13 +273,23 @@ def otp_verify(request):
 
 
 def sub_counties_api(request):
-    sub_counties = SubCounty.objects.all().values("id", "name")
-    return JsonResponse(list(sub_counties), safe=False)
+    subcounty_map = {}
+    for name in VALID_SUBCOUNTIES:
+        subcounty, _ = SubCounty.objects.get_or_create(name=name)
+        subcounty_map[name] = {"id": subcounty.id, "name": subcounty.name}
+    return JsonResponse([subcounty_map[name] for name in VALID_SUBCOUNTIES], safe=False)
 
 
 def schools_api(request):
     sub_county_id = request.GET.get("sub_county")
-    schools = School.objects.filter(sub_county_id=sub_county_id).values("id", "name")
+    schools = (
+        School.objects.filter(
+            sub_county_id=sub_county_id,
+            sub_county__name__in=VALID_SUBCOUNTIES,
+        )
+        .order_by("name")
+        .values("id", "name")
+    )
     return JsonResponse(list(schools), safe=False)
 
 

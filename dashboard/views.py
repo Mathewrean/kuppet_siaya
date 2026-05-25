@@ -9,8 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import BBFContribution, SupportTicket, CustomUser
 from core.models import FinancialStatement
-from bbf.models import BBFClaim, BBFBeneficiary
+from bbf.models import BBFClaim, BBFBeneficiary, BBFClaimDocument
 from bbf.serializers import BBFClaimSerializer, BBFBeneficiaryCreateSerializer
+from bbf.views import create_notification
 import json
 
 
@@ -35,6 +36,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context["bbf_status"] = get_bbf_status(total_contributed)
         context["contributions"] = contributions[:5]
         context["financial_statements"] = FinancialStatement.objects.all().order_by("-fiscal_year")[:5]
+        context["member_first_name"] = user.first_name or user.get_full_name() or user.tsc_number
         return context
 
 
@@ -138,6 +140,7 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['beneficiary_type_choices'] = BBFBeneficiary.BENEFICIARY_TYPE_CHOICES
+        context["member_document_types"] = BBFClaimDocument.DOCUMENT_TYPE_CHOICES
         return context
 
     def form_valid(self, form):
@@ -197,11 +200,12 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         beneficiaries_list = [beneficiaries_data[idx] for idx in sorted_indices]
         
         # Validate member documents
-        required_member_doc_types = ['payslip', 'national_id', 'burial_permit', 'deceased_id', 'relationship', 'introduction']
+        required_member_doc_types = [doc_type for doc_type, _ in BBFClaimDocument.DOCUMENT_TYPE_CHOICES]
         missing_member_docs = []
+        required_name_map = dict(BBFClaimDocument.DOCUMENT_TYPE_CHOICES)
         for doc_type in required_member_doc_types:
             if doc_type not in member_doc_files or not member_doc_files[doc_type]:
-                missing_member_docs.append(doc_type.replace('_', ' ').title())
+                missing_member_docs.append(required_name_map[doc_type])
         
         if missing_member_docs:
             msg = 'Missing member documents: ' + ', '.join(missing_member_docs)
@@ -245,7 +249,6 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         claim.save()
         
         # Create member claim documents
-        from bbf.models import BBFClaimDocument
         for doc_type, file in member_doc_files.items():
             BBFClaimDocument.objects.create(
                 claim=claim,
@@ -289,7 +292,7 @@ class BBFClaimCreateView(LoginRequiredMixin, CreateView):
         )
         
         messages.success(request, f'Claim {claim.claim_reference} submitted successfully.')
-        return JsonResponse({'id': claim.id, 'redirect_url': reverse('bbf_claims')})
+        return JsonResponse({'id': claim.id, 'redirect_url': reverse('bbf_claim_detail', kwargs={'pk': claim.id})})
 
 
 
@@ -322,7 +325,10 @@ class SubcountyClaimReviewView(LoginRequiredMixin, DetailView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return BBFClaim.objects.filter(status='awaiting_subcounty')
+        queryset = BBFClaim.objects.filter(status='awaiting_subcounty')
+        if self.request.user.is_superuser:
+            return queryset
+        return queryset.filter(member__sub_county=self.request.user.sub_county)
 
 
 # =============================================================================

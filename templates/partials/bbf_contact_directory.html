@@ -3,64 +3,22 @@
         <span class="section-heading__eyebrow">Get in Touch</span>
         <h2 class="section-heading__title">For BBF Enquiries Contact</h2>
     </div>
-    
+
     <div class="contact-grid">
         {% for contact in contacts %}
         <div class="contact-card">
             <div class="contact-role">{{ contact.role }}</div>
-            <a href="tel:+254{{ contact.phone }}" class="contact-phone">
-                <span class="phone-icon">📞</span>
+            <p class="contact-title">{{ contact.title }}</p>
+            {% if contact.holder_name %}
+                <p class="contact-holder">{{ contact.holder_name }}</p>
+            {% endif %}
+            <a href="tel:+254{{ contact.tel_phone }}" class="contact-phone">
+                <svg class="phone-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 4h4l2 5-2.5 1.5a14 14 0 006 6L17 14l5 2v4a2 2 0 01-2.2 2A18 18 0 012 6.2 2 2 0 014 4z"></path>
+                </svg>
                 {{ contact.phone_display }}
             </a>
         </div>
         {% endfor %}
     </div>
 </section>
-
-<style>
-.bbf-contact-directory {
-    margin: 2rem 0;
-}
-.contact-grid {
-    display: grid;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-@media (min-width: 768px) {
-    .contact-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-}
-@media (max-width: 767px) and (min-width: 640px) {
-    .contact-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-.contact-card {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    text-align: center;
-    background: #fff;
-}
-.contact-role {
-    font-weight: 700;
-    color: #006633;
-    margin-bottom: 0.5rem;
-}
-.contact-phone {
-    color: #111827;
-    text-decoration: none;
-    font-size: 1.125rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-.contact-phone:hover {
-    color: #006633;
-}
-.phone-icon {
-    font-size: 1.25rem;
-}
-</style>

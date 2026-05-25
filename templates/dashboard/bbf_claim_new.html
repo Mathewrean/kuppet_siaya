@@ -7,286 +7,352 @@
 
 {% block dashboard_content %}
 <div class="space-y-6">
-    <div class="eligibility-panel">
-        <h2 class="!text-xl mb-2">Create New BBF Claim</h2>
-        <p class="text-[var(--gray-400)]">Add beneficiaries and their required documents. All documents must be uploaded before submission.</p>
-    </div>
+    {% include 'partials/bbf_documents_notice.html' %}
+
+    <section class="eligibility-panel">
+        <div class="claim-page-heading">
+            <div>
+                <p class="dashboard-card__eyebrow">Claim Submission</p>
+                <h2 class="mb-2">Create New BBF Claim</h2>
+                <p class="text-sm text-[var(--gray-500)]">Add the affected beneficiary details, then upload your six required supporting documents before submitting the claim for review.</p>
+            </div>
+            <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Back to Claims</a>
+        </div>
+    </section>
 
     <form id="bbfClaimForm" method="post" enctype="multipart/form-data" class="space-y-6">
         {% csrf_token %}
 
-        <!-- Children Section -->
         <section class="eligibility-panel">
-            <div class="flex items-center justify-between mb-4">
+            <div class="claim-section-heading">
                 <div>
                     <h3 class="font-semibold text-lg">Children</h3>
-                    <p class="text-sm text-[var(--gray-400)]">Birth Certificate required for each child (max 5)</p>
+                    <p class="text-sm text-[var(--gray-500)]">Birth Certificate required for each child. Maximum 5 children per claim.</p>
                 </div>
                 <button type="button" onclick="addBeneficiary('child')" class="btn btn-secondary text-sm" id="addChildBtn">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
                     <span>Add Child</span>
                 </button>
             </div>
+            <div class="beneficiary-count">Current entries: <span id="childCount">0</span>/5</div>
             <div id="childrenContainer" class="space-y-3"></div>
         </section>
 
-        <!-- Spouse Section -->
         <section class="eligibility-panel">
-            <div class="flex items-center justify-between mb-4">
+            <div class="claim-section-heading">
                 <div>
                     <h3 class="font-semibold text-lg">Spouse</h3>
-                    <p class="text-sm text-[var(--gray-400)]">Marriage Affidavit required (max 1)</p>
+                    <p class="text-sm text-[var(--gray-500)]">Marriage Affidavit required. Maximum 1 spouse per claim.</p>
                 </div>
                 <button type="button" onclick="addBeneficiary('spouse')" class="btn btn-secondary text-sm" id="addSpouseBtn">
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
                     <span>Add Spouse</span>
                 </button>
             </div>
+            <div class="beneficiary-count">Current entries: <span id="spouseCount">0</span>/1</div>
             <div id="spouseContainer" class="space-y-3"></div>
         </section>
 
-        <!-- Parents Section -->
         <section class="eligibility-panel">
-            <div class="flex items-center justify-between mb-4">
+            <div class="claim-section-heading">
                 <div>
                     <h3 class="font-semibold text-lg">Parents</h3>
-                    <p class="text-sm text-[var(--gray-400)]">National ID Card required for each parent</p>
+                    <p class="text-sm text-[var(--gray-500)]">National ID Card required for each parent. Maximum 1 mother and 1 father per claim.</p>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="border border-[var(--gray-700)] rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
+                <div class="claim-parent-shell">
+                    <div class="claim-section-heading claim-section-heading--compact">
                         <div>
                             <h4 class="font-medium">Mother</h4>
-                            <p class="text-xs text-[var(--gray-400)]">National ID Card required</p>
+                            <p class="text-xs text-[var(--gray-500)]">National ID Card required</p>
                         </div>
                         <button type="button" onclick="addBeneficiary('parent_mother')" class="btn btn-secondary text-sm" id="addMotherBtn">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
                             <span>Add Mother</span>
                         </button>
                     </div>
-                    <div id="motherContainer"></div>
+                    <div class="beneficiary-count">Current entries: <span id="motherCount">0</span>/1</div>
+                    <div id="motherContainer" class="space-y-3"></div>
                 </div>
-                <div class="border border-[var(--gray-700)] rounded-lg p-4">
-                    <div class="flex items-center justify-between mb-3">
+
+                <div class="claim-parent-shell">
+                    <div class="claim-section-heading claim-section-heading--compact">
                         <div>
                             <h4 class="font-medium">Father</h4>
-                            <p class="text-xs text-[var(--gray-400)]">National ID Card required</p>
+                            <p class="text-xs text-[var(--gray-500)]">National ID Card required</p>
                         </div>
                         <button type="button" onclick="addBeneficiary('parent_father')" class="btn btn-secondary text-sm" id="addFatherBtn">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
                             <span>Add Father</span>
                         </button>
                     </div>
-                    <div id="fatherContainer"></div>
+                    <div class="beneficiary-count">Current entries: <span id="fatherCount">0</span>/1</div>
+                    <div id="fatherContainer" class="space-y-3"></div>
                 </div>
             </div>
         </section>
 
-        <!-- Error Display -->
-        <div id="formErrors" class="hidden p-4 bg-red-500/10 border border-red-500/30 rounded-lg"></div>
+        <section class="eligibility-panel">
+            <div class="claim-section-heading">
+                <div>
+                    <h3 class="font-semibold text-lg">Your Supporting Documents</h3>
+                    <p class="text-sm text-[var(--gray-500)]">Upload all six required member-level documents. Accepted formats: PDF, JPG, PNG. Maximum size: 5MB per file.</p>
+                </div>
+            </div>
 
-        <!-- Submit -->
-        <div class="flex items-center justify-end gap-4">
-            <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary">
-                <span>Submit Claim</span>
-            </button>
+            <div class="member-doc-grid">
+                {% for doc_type, doc_label in member_document_types %}
+                    <div class="member-doc-card" data-doc-type="{{ doc_type }}">
+                        <label class="block text-sm font-semibold text-[var(--gray-900)] mb-2" for="member_doc_{{ doc_type }}">{{ doc_label }}</label>
+                        <p class="text-xs text-[var(--gray-500)] mb-3">Accepted formats: PDF, JPG, PNG, max 5MB.</p>
+                        <input
+                            id="member_doc_{{ doc_type }}"
+                            type="file"
+                            name="member_doc_{{ doc_type }}"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            class="text-input member-doc-input"
+                            data-doc-type="{{ doc_type }}"
+                        >
+                        <div class="member-doc-status">
+                            <span class="status-badge status-badge--muted" data-doc-status="{{ doc_type }}">Not Uploaded</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div id="formErrors" class="form-alert form-alert--error hidden"></div>
+        <div id="submitRequirements" class="form-alert form-alert--info">
+            <p class="font-medium mb-2">Submission checklist</p>
+            <ul id="missingRequirements" class="space-y-1"></ul>
+        </div>
+
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <p class="text-sm text-[var(--gray-500)]">The claim is submitted only when all member documents and beneficiary documents are attached.</p>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'bbf_claims' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitClaimBtn" disabled>
+                    <span>Submit Claim</span>
+                </button>
+            </div>
         </div>
     </form>
+
+    {% with contacts=contact_list %}
+        {% include 'partials/bbf_contact_directory.html' %}
+    {% endwith %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
+{{ block.super }}
 <script>
-let beneficiaryCounter = 0;
 const MAX_CHILDREN = 5;
+const BENEFICIARY_LIMITS = {
+    child: 5,
+    spouse: 1,
+    parent_mother: 1,
+    parent_father: 1,
+};
+const BENEFICIARY_META = {
+    child: { label: 'Child', document: 'Birth Certificate', container: 'childrenContainer', countId: 'childCount', buttonId: 'addChildBtn' },
+    spouse: { label: 'Spouse', document: 'Marriage Affidavit', container: 'spouseContainer', countId: 'spouseCount', buttonId: 'addSpouseBtn' },
+    parent_mother: { label: 'Mother', document: 'National ID Card', container: 'motherContainer', countId: 'motherCount', buttonId: 'addMotherBtn' },
+    parent_father: { label: 'Father', document: 'National ID Card', container: 'fatherContainer', countId: 'fatherCount', buttonId: 'addFatherBtn' },
+};
+const MEMBER_DOCUMENT_LABELS = {
+    payslip: 'Member Payslip',
+    national_id: 'Member National ID',
+    burial_permit: 'Deceased Burial Permit',
+    deceased_id: 'Deceased ID or Birth Certificate or Birth Notification',
+    relationship: 'Proof of Relationship',
+    introduction: 'Introduction Letter from Head of Institution',
+};
+
+let beneficiaryIndex = 0;
+const memberDocumentState = Object.fromEntries(Object.keys(MEMBER_DOCUMENT_LABELS).map((key) => [key, false]));
+
+function setFieldError(message) {
+    const errorDiv = document.getElementById('formErrors');
+    errorDiv.classList.remove('hidden');
+    errorDiv.innerHTML = `<p class="font-medium">${message}</p>`;
+}
+
+function clearFieldError() {
+    const errorDiv = document.getElementById('formErrors');
+    errorDiv.classList.add('hidden');
+    errorDiv.innerHTML = '';
+}
+
+function getBeneficiaryCount(type) {
+    return document.querySelectorAll(`.beneficiary-row[data-type="${type}"]`).length;
+}
 
 function addBeneficiary(type) {
-    beneficiaryCounter++;
-    const id = `${type}_${beneficiaryCounter}_${Date.now()}`;
-    
-    let label = '';
-    let docLabel = '';
-    
-    switch(type) {
-        case 'child': label = 'Child'; docLabel = 'Birth Certificate'; break;
-        case 'spouse': label = 'Spouse'; docLabel = 'Marriage Affidavit'; break;
-        case 'parent_mother': label = 'Mother'; docLabel = 'National ID Card'; break;
-        case 'parent_father': label = 'Father'; docLabel = 'National ID Card'; break;
-    }
-
-    const row = document.createElement('div');
-    row.className = 'beneficiary-row flex items-center gap-3 p-3 bg-[var(--bg-elevated)] rounded-lg border border-[var(--gray-700)]';
-    row.dataset.type = type;
-    row.dataset.id = id;
-    row.innerHTML = `
-        <input type="hidden" name="beneficiaries_${id}_type" value="${type}">
-        <svg class="h-5 w-5 text-[var(--gray-400)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-        <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-                <label class="block text-xs text-[var(--gray-400)] mb-1">Full Name - ${label}</label>
-                <input type="text" name="beneficiaries_${id}_name" 
-                       class="form-input block w-full bg-[var(--bg-card)] border-[var(--gray-700)] text-sm" 
-                       placeholder="Enter full name" required>
-            </div>
-            <div>
-                <label class="block text-xs text-[var(--gray-400)] mb-1">${docLabel} (PDF/JPG/PNG, max 5MB)</label>
-                <input type="file" name="beneficiaries_${id}_document" accept=".pdf,.jpg,.jpeg,.png" 
-                       class="form-input block w-full bg-[var(--bg-card)] border-[var(--gray-700)] text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[var(--accent-color)] file:text-[var(--bg-card)] hover:file:bg-[var(--accent-hover)]" required>
-            </div>
-        </div>
-        <button type="button" onclick="removeBeneficiary(this)" class="text-[var(--gray-400)] hover:text-red-500 transition-colors p-1" title="Remove">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        </button>
-    `;
-
-    const containerMap = {
-        'child': 'childrenContainer',
-        'spouse': 'spouseContainer',
-        'parent_mother': 'motherContainer',
-        'parent_father': 'fatherContainer'
-    };
-    document.getElementById(containerMap[type]).appendChild(row);
-
-    updateButtonStates();
-}
-
-function removeBeneficiary(btn) {
-    const row = btn.closest('.beneficiary-row');
-    row.remove();
-    updateButtonStates();
-}
-
-function updateButtonStates() {
-    const childrenCount = document.querySelectorAll('[data-type="child"]').length;
-    const hasSpouse = document.querySelectorAll('[data-type="spouse"]').length > 0;
-    const hasMother = document.querySelectorAll('[data-type="parent_mother"]').length > 0;
-    const hasFather = document.querySelectorAll('[data-type="parent_father"]').length > 0;
-
-    document.getElementById('addChildBtn').disabled = childrenCount >= MAX_CHILDREN;
-    if (childrenCount >= MAX_CHILDREN) {
-        document.getElementById('addChildBtn').innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg><span>Maximum of 5 children reached</span>';
-        document.getElementById('addChildBtn').classList.add('opacity-50', 'cursor-not-allowed');
-    } else {
-        document.getElementById('addChildBtn').innerHTML = '<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg><span>Add Child</span>';
-        document.getElementById('addChildBtn').classList.remove('opacity-50', 'cursor-not-allowed');
-    }
-
-    document.getElementById('addSpouseBtn').style.display = hasSpouse ? 'none' : '';
-    document.getElementById('addSpouseBtn').disabled = hasSpouse;
-    document.getElementById('addMotherBtn').style.display = hasMother ? 'none' : '';
-    document.getElementById('addMotherBtn').disabled = hasMother;
-    document.getElementById('addFatherBtn').style.display = hasFather ? 'none' : '';
-    document.getElementById('addFatherBtn').disabled = hasFather;
-}
-
-document.getElementById('bbfClaimForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    const errors = [];
-    
-    const rows = document.querySelectorAll('.beneficiary-row');
-    if (rows.length === 0) {
-        errors.push('At least one beneficiary is required.');
-    }
-
-    for (const row of rows) {
-        const fileInput = row.querySelector('input[type="file"]');
-        const nameInput = row.querySelector('input[type="text"]');
-        const type = row.dataset.type;
-        
-        let typeLabel = type;
-        if (type === 'child') typeLabel = 'child';
-        else if (type === 'spouse') typeLabel = 'spouse';
-        else if (type === 'parent_mother') typeLabel = 'mother';
-        else if (type === 'parent_father') typeLabel = 'father';
-        
-        if (!nameInput.value.trim()) {
-            errors.push(`Please enter a name for the ${typeLabel}.`);
-        }
-        
-        if (!fileInput.files || fileInput.files.length === 0) {
-            errors.push(`Document required for ${nameInput.value || typeLabel}`);
-        }
-    }
-
-    if (errors.length > 0) {
-        const errorDiv = document.getElementById('formErrors');
-        errorDiv.classList.remove('hidden');
-        errorDiv.innerHTML = '<p class="font-medium text-red-500 mb-2">Please fix the following errors:</p><ul class="list-disc list-inside space-y-1 text-red-500">' + 
-            errors.map(e => `<li>${e}</li>`).join('') + '</ul>';
-        errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const meta = BENEFICIARY_META[type];
+    if (!meta) {
         return;
     }
 
+    const currentCount = getBeneficiaryCount(type);
+    if (currentCount >= BENEFICIARY_LIMITS[type]) {
+        setFieldError(`You can only add ${BENEFICIARY_LIMITS[type]} ${meta.label.toLowerCase()} entry for this claim.`.replace('1 parent_mother', '1 mother').replace('1 parent_father', '1 father'));
+        return;
+    }
+
+    clearFieldError();
+
+    const row = document.createElement('div');
+    row.className = 'beneficiary-row';
+    row.dataset.type = type;
+    row.innerHTML = `
+        <input type="hidden" name="beneficiaries-${beneficiaryIndex}-type" value="${type}">
+        <div class="beneficiary-row__grid">
+            <div>
+                <label class="block text-xs font-semibold text-[var(--gray-600)] mb-1">Full Name - ${meta.label}</label>
+                <input type="text" name="beneficiaries-${beneficiaryIndex}-name" class="text-input beneficiary-name-input" placeholder="Enter full name">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-[var(--gray-600)] mb-1">${meta.document}</label>
+                <input type="file" name="beneficiaries-${beneficiaryIndex}-document" class="text-input beneficiary-doc-input" accept=".pdf,.jpg,.jpeg,.png">
+                <p class="text-xs text-[var(--gray-500)] mt-1">Accepted formats: PDF, JPG, PNG, max 5MB.</p>
+            </div>
+        </div>
+        <button type="button" class="beneficiary-row__remove" aria-label="Remove ${meta.label}" onclick="removeBeneficiary(this)">Remove</button>
+    `;
+
+    beneficiaryIndex += 1;
+    document.getElementById(meta.container).appendChild(row);
+    row.querySelector('.beneficiary-name-input').addEventListener('input', updateSubmitState);
+    row.querySelector('.beneficiary-doc-input').addEventListener('change', updateSubmitState);
+    updateSubmitState();
+}
+
+function removeBeneficiary(button) {
+    button.closest('.beneficiary-row')?.remove();
+    clearFieldError();
+    updateSubmitState();
+}
+
+function updateMemberDocumentStatus(docType, uploaded) {
+    memberDocumentState[docType] = uploaded;
+    const badge = document.querySelector(`[data-doc-status="${docType}"]`);
+    if (!badge) {
+        return;
+    }
+
+    if (uploaded) {
+        badge.className = 'status-badge status-badge--pending';
+        badge.textContent = 'Uploaded and Pending Verification';
+        return;
+    }
+
+    badge.className = 'status-badge status-badge--muted';
+    badge.textContent = 'Not Uploaded';
+}
+
+function beneficiaryValidation() {
+    const rows = Array.from(document.querySelectorAll('.beneficiary-row'));
+    const missing = [];
+
+    if (!rows.length) {
+        missing.push('Add at least one beneficiary with the required document.');
+    }
+
+    rows.forEach((row) => {
+        const type = row.dataset.type;
+        const meta = BENEFICIARY_META[type];
+        const nameInput = row.querySelector('.beneficiary-name-input');
+        const fileInput = row.querySelector('.beneficiary-doc-input');
+        const label = meta ? meta.label : 'Beneficiary';
+
+        if (!nameInput.value.trim()) {
+            missing.push(`Enter the full name for ${label.toLowerCase()}.`);
+        }
+
+        if (!fileInput.files.length) {
+            missing.push(`Upload the ${meta.document} for ${nameInput.value.trim() || label.toLowerCase()}.`);
+        }
+    });
+
+    return missing;
+}
+
+function memberDocumentValidation() {
+    return Object.entries(memberDocumentState)
+        .filter(([, uploaded]) => !uploaded)
+        .map(([key]) => `${MEMBER_DOCUMENT_LABELS[key]} is required.`);
+}
+
+function updateSubmitState() {
+    const missing = [...memberDocumentValidation(), ...beneficiaryValidation()];
+    const submitButton = document.getElementById('submitClaimBtn');
+    const list = document.getElementById('missingRequirements');
+
+    submitButton.disabled = missing.length > 0;
+    list.innerHTML = missing.map((item) => `<li>${item}</li>`).join('');
+
+    Object.entries(BENEFICIARY_META).forEach(([type, meta]) => {
+        const count = getBeneficiaryCount(type);
+        const countEl = document.getElementById(meta.countId);
+        const button = document.getElementById(meta.buttonId);
+        if (countEl) {
+            countEl.textContent = String(count);
+        }
+        if (button) {
+            button.disabled = count >= BENEFICIARY_LIMITS[type];
+        }
+    });
+}
+
+document.querySelectorAll('.member-doc-input').forEach((input) => {
+    input.addEventListener('change', (event) => {
+        const uploaded = Boolean(event.target.files && event.target.files.length);
+        updateMemberDocumentStatus(event.target.dataset.docType, uploaded);
+        updateSubmitState();
+    });
+});
+
+document.getElementById('bbfClaimForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    clearFieldError();
+    updateSubmitState();
+
+    const missing = [...memberDocumentValidation(), ...beneficiaryValidation()];
+    if (missing.length > 0) {
+        setFieldError('Complete all required uploads before submitting the claim.');
+        return;
+    }
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const submitButton = document.getElementById('submitClaimBtn');
+    submitButton.disabled = true;
+
     try {
-        const response = await fetch('{% url "bbf-claims-list" %}', {
+        const response = await fetch('', {
             method: 'POST',
+            body: formData,
             headers: {
-                'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
             },
             credentials: 'same-origin',
-            body: JSON.stringify({})
         });
 
         const data = await response.json();
-
         if (!response.ok) {
-            throw new Error(data.error || 'Failed to create claim');
+            const missingDocs = (data.missing_documents || []).map((item) => `<li>${item}</li>`).join('');
+            const extra = missingDocs ? `<ul class="mt-2 space-y-1">${missingDocs}</ul>` : '';
+            document.getElementById('formErrors').classList.remove('hidden');
+            document.getElementById('formErrors').innerHTML = `<p class="font-medium">${data.error || 'The claim could not be submitted.'}</p>${extra}`;
+            submitButton.disabled = false;
+            return;
         }
 
-        const claimId = data.id;
-
-        const rows = document.querySelectorAll('.beneficiary-row');
-        for (const row of rows) {
-            const type = row.dataset.type;
-            const nameInput = row.querySelector('input[type="text"]');
-            const fileInput = row.querySelector('input[type="file"]');
-            
-            const benFormData = new FormData();
-            benFormData.append('beneficiary_type', type);
-            benFormData.append('full_name', nameInput.value);
-            if (fileInput.files[0]) {
-                benFormData.append('document', fileInput.files[0]);
-            }
-
-            const benResponse = await fetch(`/api/bbf/claims/${claimId}/beneficiaries/`, {
-                method: 'POST',
-                body: benFormData,
-                headers: {
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                },
-                credentials: 'same-origin'
-            });
-
-            if (!benResponse.ok) {
-                throw new Error(`Failed to add beneficiary: ${nameInput.value}`);
-            }
-        }
-
-        window.location.href = `{% url 'bbf_claim_detail' pk=0 %}`.replace('/0/', `/${claimId}/`);
-    } catch (err) {
-        const errorDiv = document.getElementById('formErrors');
-        errorDiv.classList.remove('hidden');
-        errorDiv.innerHTML = '<p class="font-medium text-red-500">' + (err.message || 'An error occurred') + '</p>';
-        console.error(err);
+        window.location.href = data.redirect_url || `{% url 'bbf_claims' %}`;
+    } catch (error) {
+        setFieldError('The claim could not be submitted right now. Please try again.');
+        submitButton.disabled = false;
     }
 });
+
+updateSubmitState();
 </script>
 {% endblock %}

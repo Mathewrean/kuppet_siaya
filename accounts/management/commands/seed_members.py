@@ -14,6 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.authentication import build_password_seed, format_default_password
+from accounts.constants import VALID_SUBCOUNTIES, is_valid_subcounty, normalize_subcounty_name
 from accounts.models import CustomUser, School, SubCounty
 
 
@@ -58,6 +59,16 @@ class PreparedMember:
 
 def normalize_text(value):
     return " ".join((value or "").replace("\xa0", " ").split())
+
+
+def normalize_member_row(member):
+    return MemberRow(
+        reg_number=member.reg_number,
+        officer_name=member.officer_name,
+        work_subcounty=normalize_subcounty_name(member.work_subcounty),
+        station_name=member.station_name,
+        contact=member.contact,
+    )
 
 
 def parse_docx_rows(document_path):
@@ -390,8 +401,23 @@ class Command(BaseCommand):
         if password_iterations <= 0:
             raise CommandError("--password-iterations must be a positive integer.")
 
-        members = parse_docx_rows(document_path)
+        raw_members = parse_docx_rows(document_path)
+        members = []
+        invalid_rows = []
+
+        for member in raw_members:
+            normalized_member = normalize_member_row(member)
+            if is_valid_subcounty(normalized_member.work_subcounty):
+                members.append(normalized_member)
+            else:
+                invalid_rows.append(normalized_member)
+
         self.emit(f"Loaded {len(members)} member rows from {document_path}.")
+        if invalid_rows:
+            self.emit(
+                f"Skipped {len(invalid_rows)} row(s) with non-Siaya sub-counties. "
+                f"Allowed values: {', '.join(VALID_SUBCOUNTIES)}."
+            )
 
         existing_users_by_tsc = CustomUser.objects.in_bulk(
             [member.reg_number for member in members if member.reg_number],

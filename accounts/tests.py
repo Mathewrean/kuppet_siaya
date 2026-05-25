@@ -6,7 +6,7 @@ from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 from xml.sax.saxutils import escape
 
-from django.contrib.auth.hashers import identify_hasher
+from django.contrib.auth.hashers import get_hasher, identify_hasher
 from django.core import mail
 from django.core.management import call_command
 from django.test import TestCase, override_settings
@@ -85,7 +85,7 @@ class SeedMembersCommandTests(TestCase):
             bernard.refresh_from_db()
             self.assertEqual(
                 identify_hasher(bernard.password).safe_summary(bernard.password)["iterations"],
-                720000,
+                get_hasher("default").iterations,
             )
 
             self.assertEqual(judith.first_name, "Judith")

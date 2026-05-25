@@ -43,30 +43,48 @@ A comprehensive web application for managing KUPPET Siaya Branch operations, inc
 - PostgreSQL (for production)
 - GDAL, GEOS, PROJ (if using spatial features)
 
-### Initial Setup
+### Local Development Quick Start
+
+This project is a Django application. There is no separate Vite or `frontend/` dev server to start.
+
+To keep this project isolated from other local apps, use port `8010` by default:
 
 ```bash
-# Clone the repository
 cd /home/mathewrean/Desktop/PROJECTS/kuppetsiaya
 
-# Install dependencies (if using virtual environment)
+# Create and activate a virtual environment if needed
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Run database migrations
+# Apply database migrations
 python manage.py migrate
 
-# Create superuser (for admin access)
-python manage.py createsuperuser
-
-# Import member data (if available)
+# Optional: seed members from the official source document
 python manage.py seed_members --file Members.docx --credentials-file member_seed_credentials.csv
 
-# Start development server
-python manage.py runserver
+# Optional: create a superuser for admin access
+python manage.py createsuperuser
 
-# Or use ASGI server for concurrent requests (recommended):
-uvicorn kuppetsiaya.asgi:application --host 0.0.0.0 --port 8000 --workers 4
+# Start the project on an isolated local port
+./run.sh
+
+# Or run Django directly
+python manage.py runserver 127.0.0.1:8010
 ```
+
+Open:
+
+- Main site: `http://127.0.0.1:8010/`
+- Member login: `http://127.0.0.1:8010/accounts/login/`
+- Dashboard: `http://127.0.0.1:8010/dashboard/`
+- Admin: `http://127.0.0.1:8010/admin/`
+
+### Why port 8010?
+
+The most common local routing mix-up on this machine has been multiple projects trying to use `localhost:8000` at the same time. Running KUPPET Siaya on `127.0.0.1:8010` keeps the current project isolated and avoids landing on another app that was already serving port `8000`.
 
 ## Login Instructions
 
