@@ -90,6 +90,16 @@ INSTALLED_APPS = [
 
 # TAILWIND_APP_NAME = 'theme'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+}
+
 # WhiteNoise for static file serving in production
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -181,8 +191,13 @@ CSRF_TRUSTED_ORIGINS = [
     'https://albert-incult-superfluously.ngrok-free.dev',
     'http://127.0.0.1:8010',
     'http://localhost:8010',
+    'https://*.up.railway.app',
     'https://*.railway.app',
 ]
+
+# Railway terminates SSL at the load balancer; trust X-Forwarded-Proto
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 # Session cookie age must outlive OTP expiry (10 min) so users can complete verification.
 SESSION_COOKIE_AGE = 660
