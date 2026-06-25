@@ -1947,3 +1947,54 @@
     width: 100%;
   }
 }
+
+.success-modal-backdrop {
+  @apply fixed inset-0 z-50 flex items-center justify-center px-4 py-6;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.success-modal-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.success-modal {
+  @apply relative w-full max-w-md border bg-white p-8;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+}
+
+.success-modal__icon {
+  @apply mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full;
+  background: var(--green-light);
+  color: var(--green-primary);
+}
+
+.success-modal__title {
+  @apply text-center text-xl font-bold;
+  color: var(--green-primary);
+  margin-bottom: 0.5rem;
+}
+
+.success-modal__message {
+  @apply text-center text-sm;
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+
+.success-modal__close {
+  @apply mx-auto mt-6 inline-flex items-center justify-center border px-6 py-2.5 text-sm font-semibold;
+  background: var(--green-primary);
+  border-color: var(--green-primary);
+  color: var(--white);
+  border-radius: var(--radius);
+  transition: var(--transition);
+}
+
+.success-modal__close:hover {
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+}

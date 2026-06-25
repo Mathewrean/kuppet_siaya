@@ -42,7 +42,7 @@
                 <p class="mt-6">If you are a member, you can also use the support area in your dashboard for personalised assistance.</p>
             </div>
 
-            <form method="post" class="form-panel">
+            <form method="post" class="form-panel" id="contactForm">
                 {% csrf_token %}
                 <h2>Contact Form</h2>
                 <div class="form-grid">
@@ -81,13 +81,27 @@
                         </label>
                     </div>
                     <div class="field field--full">
-                        <button type="submit" class="btn btn-primary w-full">Send Message</button>
+                        <button type="submit" class="btn btn-primary w-full" id="contactSubmitBtn">Send Message</button>
                     </div>
                 </div>
             </form>
+
         </div>
     </div>
 </section>
+
+<div class="success-modal-backdrop" id="successModal" role="dialog" aria-modal="true" aria-labelledby="successModalTitle">
+    <div class="success-modal">
+        <div class="success-modal__icon">
+            <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h3 class="success-modal__title" id="successModalTitle">Message Sent!</h3>
+        <p class="success-modal__message">Thank you for reaching out. Our team will review your message and get back to you shortly.</p>
+        <button type="button" class="success-modal__close" id="closeSuccessModal">Close</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -118,4 +132,66 @@
     }());
 </script>
 {% endif %}
+
+<script>
+(function () {
+    const contactForm = document.getElementById('contactForm');
+    const successModal = document.getElementById('successModal');
+    const closeBtn = document.getElementById('closeSuccessModal');
+
+    if (!contactForm || !successModal || !closeBtn) return;
+
+    contactForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(contactForm);
+        const submitBtn = document.getElementById('contactSubmitBtn');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+        }
+
+        try {
+            const response = await fetch(contactForm.action || window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                },
+                body: formData,
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok && data.success) {
+                contactForm.reset();
+                successModal.classList.add('is-open');
+                document.body.style.overflow = 'hidden';
+            } else {
+                alert(data.message || 'Something went wrong. Please try again.');
+            }
+        } catch (err) {
+            alert('Network error. Please try again later.');
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';
+            }
+        }
+    });
+
+    function closeModal() {
+        successModal.classList.remove('is-open');
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    successModal.addEventListener('click', function (e) {
+        if (e.target === successModal) closeModal();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && successModal.classList.contains('is-open')) closeModal();
+    });
+}());
+</script>
 {% endblock %}

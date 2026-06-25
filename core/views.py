@@ -190,8 +190,36 @@ def news_archive(request):
 
 def contact(request):
     if request.method == "POST":
-        # Handle form submission
-        pass
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        email = request.POST.get("email", "").strip()
+        tsc_number = request.POST.get("tsc_number", "").strip()
+        phone_number = request.POST.get("phone_number", "").strip()
+        subject = request.POST.get("subject", "").strip()
+        message_text = request.POST.get("message", "").strip()
+        consent = request.POST.get("consent") == "on"
+
+        ContactMessage.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            tsc_number=tsc_number,
+            phone_number=phone_number,
+            subject=subject,
+            message=message_text,
+            consent=consent,
+        )
+
+        if request.headers.get("Accept") == "application/json" or request.headers.get(
+            "X-Requested-With"
+        ) == "XMLHttpRequest":
+            return JsonResponse(
+                {"success": True, "message": "Your message has been sent successfully!"}
+            )
+
+        messages.success(request, "Your message has been sent successfully!")
+        return redirect("contact")
+
     return render(request, "core/contact.html")
 
 
