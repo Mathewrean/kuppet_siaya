@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./static_src/input.css -o ./static/css/styles.css",
+    "build:css": "NODE_ENV=production npx tailwindcss -i ./static_src/input.css -o ./static/css/styles.css --minify",
     "watch:css": "npx tailwindcss -i ./static_src/input.css -o ./static/css/styles.css --watch"
   },
   "keywords": [],

@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --green-primary: #006633;
     --green-dark: #004d26;
     --green-light: #e6f2ec;
