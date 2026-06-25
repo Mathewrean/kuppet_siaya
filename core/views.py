@@ -1,5 +1,8 @@
+import logging
+
 from django.contrib import messages
 from django.core.paginator import Paginator
+from django.db import DatabaseError
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import JsonResponse
@@ -69,22 +72,18 @@ PLACEHOLDER_GALLERY_IMAGES = [
 ]
 
 
+logger = logging.getLogger(__name__)
+
+
 def home(request):
-    news = NewsPost.objects.filter(is_published=True).order_by("-published_date")[:6]
-    albums = GalleryAlbumModel.objects.filter(is_published=True).prefetch_related("images")[:5]
-    # normalize attributes for templates that expect `title` and `cover_image.url`
-    for a in albums:
-        if not hasattr(a, 'title'):
-            a.title = getattr(a, 'name', None)
-        # make `cover_image` resemble an ImageField for templates
-        if getattr(a, 'cover_image', None):
-            try:
-                a.cover_image = a.cover_image.image
-            except Exception:
-                pass
+    try:
+        news = list(NewsPost.objects.filter(is_published=True).order_by("-published_date")[:6])
+    except DatabaseError:
+        logger.exception("Failed to load homepage news.")
+        news = []
+
     context = {
         "news": news,
-        "albums": albums,
         "placeholder_news": [] if news else PLACEHOLDER_NEWS,
     }
     return render(request, "core/home.html", context)
@@ -225,10 +224,15 @@ def contact(request):
 
 @require_GET
 def homepage_slider_api(request):
-    albums = GalleryAlbumModel.objects.filter(
-        is_published=True,
-        show_on_homepage_slider=True,
-    ).order_by('homepage_slider_order')
+    try:
+        albums = list(GalleryAlbumModel.objects.filter(
+            is_published=True,
+            show_on_homepage_slider=True,
+        ).order_by('homepage_slider_order'))
+    except DatabaseError:
+        logger.exception("Failed to load homepage slider albums.")
+        return JsonResponse([], safe=False)
+
     data = []
     for album in albums:
         cover = None

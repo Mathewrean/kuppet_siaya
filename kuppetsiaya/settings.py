@@ -12,6 +12,26 @@ def str_to_bool(value, default=False):
     return value.lower() in ('true', '1', 'yes', 'on')
 
 
+def csv_config(name, default=''):
+    return [
+        item.strip()
+        for item in config(name, default=default).split(',')
+        if item.strip()
+    ]
+
+
+def unique_list(values):
+    seen = set()
+    result = []
+    for value in values:
+        if not value:
+            continue
+        if value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -26,14 +46,17 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = str_to_bool(config('DEBUG', default='False'))
 
 
-ALLOWED_HOSTS = [
+RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='').strip()
+
+ALLOWED_HOSTS = unique_list([
     "127.0.0.1",
     "localhost",
     "0.0.0.0",
     "testserver",
     "albert-incult-superfluously.ngrok-free.dev",
     ".railway.app",
-]
+    RAILWAY_PUBLIC_DOMAIN,
+] + csv_config('ALLOWED_HOSTS'))
 
 # Tailwind CSS Configuration
 # TAILWIND_CONFIG = {
@@ -187,20 +210,20 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
-CSRF_TRUSTED_ORIGINS = [
+CSRF_TRUSTED_ORIGINS = unique_list([
     'https://albert-incult-superfluously.ngrok-free.dev',
     'http://127.0.0.1:8010',
     'http://localhost:8010',
     'https://*.up.railway.app',
     'https://*.railway.app',
-]
+] + ([f'https://{RAILWAY_PUBLIC_DOMAIN}'] if RAILWAY_PUBLIC_DOMAIN else []) + csv_config('CSRF_TRUSTED_ORIGINS'))
 
 # Railway terminates SSL at the load balancer; trust X-Forwarded-Proto
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
-# Session cookie age must outlive OTP expiry (10 min) so users can complete verification.
-SESSION_COOKIE_AGE = 660
+# OTP expiry is enforced inside the OTP challenge; keep the signed-in session usable.
+SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', default=1209600, cast=int)
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True

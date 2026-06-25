@@ -79,9 +79,11 @@ def register(request):
 
 
 def login_view(request):
+    logger.info("login_view called method=%s from=%s", request.method, request.META.get("REMOTE_ADDR"))
     if request.method == "POST":
         tsc_number = request.POST["tsc_number"].strip()
         password = request.POST["password"]
+        logger.info("login attempt tsc=%s", tsc_number)
 
         try:
             existing_user = CustomUser.objects.get(tsc_number=tsc_number)
@@ -89,6 +91,7 @@ def login_view(request):
             existing_user = None
 
         if existing_user and (existing_user.approval_status != "APPROVED" or not existing_user.is_active):
+            logger.warning("login blocked: account not approved tsc=%s", tsc_number)
             messages.error(request, "Account not approved yet.")
         elif existing_user and not has_registered_email(existing_user):
             user = authenticate(request, tsc_number=tsc_number, password=password)
