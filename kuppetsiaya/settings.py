@@ -73,11 +73,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     # Third-party apps
-    'django_otp',
-    'django_otp.plugins.otp_totp',
-    'django_otp.plugins.otp_email',
-    'rest_framework',
     'theme',
+    'rest_framework',
     
     # Project apps
     'core',
@@ -187,8 +184,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
 ]
 
-# Session idle timeout (4 minutes = 240 seconds)
-SESSION_COOKIE_AGE = 240
+# Session cookie age must outlive OTP expiry (10 min) so users can complete verification.
+SESSION_COOKIE_AGE = 660
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
