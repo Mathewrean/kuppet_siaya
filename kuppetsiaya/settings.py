@@ -1,87 +1,40 @@
-import os
+import shutil
 import dj_database_url
-from decouple import config
+import logging
+import sys
 from pathlib import Path
+from decouple import config
+
+logger = logging.getLogger(__name__)
 
 
 def str_to_bool(value, default=False):
     if isinstance(value, bool):
         return value
-    if not value:
-        return default
-    return value.lower() in ('true', '1', 'yes', 'on')
+    return bool(value and value.lower() in ('true', '1', 'yes', 'on')) if value else default
 
 
 def csv_config(name, default=''):
-    return [
-        item.strip()
-        for item in config(name, default=default).split(',')
-        if item.strip()
-    ]
+    return [item.strip() for item in config(name, default=default).split(',') if item.strip()]
 
 
 def unique_list(values):
     seen = set()
-    result = []
-    for value in values:
-        if not value:
-            continue
-        if value not in seen:
-            seen.add(value)
-            result.append(value)
-    return result
+    return [x for x in values if x and x not in seen and not seen.add(x)]
 
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = str_to_bool(config('DEBUG', default='False'))
-
 
 RAILWAY_PUBLIC_DOMAIN = config('RAILWAY_PUBLIC_DOMAIN', default='').strip()
 
 ALLOWED_HOSTS = unique_list([
-    "127.0.0.1",
-    "localhost",
-    "0.0.0.0",
-    "testserver",
-    "albert-incult-superfluously.ngrok-free.dev",
-    ".railway.app",
-    RAILWAY_PUBLIC_DOMAIN,
+    "127.0.0.1", "localhost", "0.0.0.0", "testserver",
+    "albert-incult-superfluously.ngrok-free.dev", ".railway.app", RAILWAY_PUBLIC_DOMAIN,
 ] + csv_config('ALLOWED_HOSTS'))
 
-# Tailwind CSS Configuration
-# TAILWIND_CONFIG = {
-#     'theme': {
-#         'extend': {
-#             'colors': {
-#                 'primary-green': '#006633',
-#                 'secondary-yellow': '#FFCC00',
-#             },
-#         },
-#     },
-#     'plugins': [
-#         '@tailwindcss/forms',
-#         '@tailwindcss/typography',
-#     ],
-# }
-
-# Path to npm binary
-# This might need to be adjusted based on your system setup.
-# For example, on Linux it might be '/usr/bin/npm'
-# On macOS, it might be '/usr/local/bin/npm'
-# If you are using npx, you might need to set this to the path of npx.
-# If you are unsure, you can run `which npm` in your terminal to find the path.
-# For now, we will assume it is in the PATH. If it fails, this needs to be set explicitly.
-import shutil
 NPM_BIN_PATH = shutil.which('npm')
 
 
@@ -212,10 +165,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
 CSRF_TRUSTED_ORIGINS = unique_list([
     'https://albert-incult-superfluously.ngrok-free.dev',
-    'http://127.0.0.1:8010',
-    'http://localhost:8010',
-    'https://*.up.railway.app',
-    'https://*.railway.app',
+    'http://127.0.0.1:8010', 'http://localhost:8010',
 ] + ([f'https://{RAILWAY_PUBLIC_DOMAIN}'] if RAILWAY_PUBLIC_DOMAIN else []) + csv_config('CSRF_TRUSTED_ORIGINS'))
 
 # Railway terminates SSL at the load balancer; trust X-Forwarded-Proto
@@ -279,6 +229,8 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = str_to_bool(config('EMAIL_USE_TLS', default='True'))
 EMAIL_USE_SSL = str_to_bool(config('EMAIL_USE_SSL', default='False'))
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
+
+# Email backend: use console backend when no SMTP credentials are provided
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default=(
@@ -292,3 +244,42 @@ DEFAULT_FROM_EMAIL = config(
     default=EMAIL_HOST_USER or 'no-reply@kuppetsiaya.or.ke',
 )
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}:{lineno} - {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
+            'formatter': 'verbose' if DEBUG else 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'accounts': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+        },
+    },
+}
+
+try:
+    import sentry_sdk
+    if not DEBUG and config('SENTRY_DSN', default=''):
+        sentry_sdk.init(dsn=config('SENTRY_DSN'), traces_sample_rate=0.1)
+except ImportError:
+    pass
