@@ -98,7 +98,9 @@ def login_view(request):
             if user is not None:
                 clear_otp_challenge(request)
                 start_account_initialization(request, existing_user.pk)
+                logger.info("redirecting to initialize_account tsc=%s", tsc_number)
                 return redirect("initialize_account")
+            logger.warning("invalid password for uninitialized account tsc=%s", tsc_number)
             messages.error(request, "Invalid TSC number or password.")
         else:
             user = authenticate(request, tsc_number=tsc_number, password=password)
@@ -119,13 +121,16 @@ def login_view(request):
                     messages.error(request, "Invalid TSC number or password.")
             else:
                 try:
+                    logger.info("authenticated successfully, starting OTP flow tsc=%s email=%s", tsc_number, user.email)
                     begin_email_otp_flow(
                         request,
                         purpose="login",
                         user=user,
                         email=user.email,
                     )
-                except Exception:
+                    logger.info("OTP email dispatched tsc=%s email=%s", tsc_number, user.email)
+                except Exception as exc:
+                    logger.exception("OTP dispatch failed tsc=%s error=%s", tsc_number, exc)
                     messages.error(
                         request,
                         "We could not send a verification code right now. Please try again in a moment.",
@@ -136,6 +141,7 @@ def login_view(request):
                     request,
                     f"A verification code has been sent to {mask_email_address(user.email)}.",
                 )
+                logger.info("redirecting to otp_verify tsc=%s", tsc_number)
                 return redirect("otp_verify")
 
     return render(request, "accounts/login.html")
@@ -211,6 +217,7 @@ def initialize_account(request):
 
 def otp_verify(request):
     challenge = get_otp_challenge(request)
+    logger.info("otp_verify called challenge=%s", "present" if challenge else "missing")
     if challenge is None:
         messages.info(request, "Use your TSC number and password to sign in.")
         return redirect("login")
@@ -230,6 +237,7 @@ def otp_verify(request):
     if request.method == "POST":
         submitted_otp = request.POST.get("otp", "").strip()
         challenge, error_code = validate_otp_code(request, submitted_otp)
+        logger.info("otp validation result error=%s attempts_left=%s", error_code, challenge.get("attempts_left") if challenge else "N/A")
 
         if error_code == "missing":
             messages.info(request, "Use your TSC number and password to sign in.")
@@ -492,3 +500,18 @@ def password_reset_confirm(request, uidb64, token):
 
 def password_reset_complete(request):
     return render(request, "accounts/password_reset_complete.html")
+
+
+def health_check(request):
+    from django.db import connection
+    from django.http import JsonResponse
+    db_ok = True
+    try:
+        connection.ensure_connection()
+    except Exception:
+        db_ok = False
+    return JsonResponse({
+        "status": "ok" if db_ok else "degraded",
+        "db": "ok" if db_ok else "error",
+        "debug": settings.DEBUG,
+    })
