@@ -11,3 +11,5 @@ django-storages
 whitenoise
 django-compressor
 djangorestframework
+dj-database-url
+gunicorn

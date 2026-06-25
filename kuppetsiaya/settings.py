@@ -1,4 +1,5 @@
 import os
+import dj_database_url
 from decouple import config
 from pathlib import Path
 
@@ -13,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 
 ALLOWED_HOSTS = [
@@ -22,6 +23,7 @@ ALLOWED_HOSTS = [
     "0.0.0.0",
     "testserver",
     "albert-incult-superfluously.ngrok-free.dev",
+    ".railway.app",
 ]
 
 # Tailwind CSS Configuration
@@ -132,12 +134,19 @@ WSGI_APPLICATION = 'kuppetsiaya.wsgi.application'
 #         'PORT': '5432',
 #     }
 # }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DATABASE_URL = config('DATABASE_URL', default=None)
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # DATABASE_ROUTERS = ['kuppetsiaya.routers.LegacyRouter']
 
@@ -166,6 +175,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://albert-incult-superfluously.ngrok-free.dev',
     'http://127.0.0.1:8010',
     'http://localhost:8010',
+    'https://*.railway.app',
 ]
 
 # Session idle timeout (4 minutes = 240 seconds)
