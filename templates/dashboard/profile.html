@@ -100,6 +100,14 @@
         <p class="mb-4 text-[0.875rem] text-[var(--gray-700)]">If you need support regarding a change of station or branch transfer process, submit a request through the support channel for formal guidance.</p>
         <a href="{% url 'support' %}" class="btn btn-outline-green">Request Transfer</a>
     </section>
+
+    {% if user.is_superuser or user.is_staff %}
+    <section class="profile-transfer">
+        <h3>Administration</h3>
+        <p class="mb-4 text-[0.875rem] text-[var(--gray-700)]">Reset passwords for branch members.</p>
+        <a href="{% url 'admin_reset_password' %}" class="btn btn-accent">Reset Member Password</a>
+    </section>
+    {% endif %}
 </div>
 {% endblock %}
 

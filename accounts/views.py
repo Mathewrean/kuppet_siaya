@@ -1,9 +1,14 @@
+import logging
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
 
 from .authentication import (
     OTP_EXPIRY_MINUTES,
@@ -20,6 +25,8 @@ from .authentication import (
 )
 from .constants import VALID_SUBCOUNTIES, is_valid_subcounty, normalize_subcounty_name
 from .models import CustomUser, LegacyTeacher, School, SubCounty
+
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -311,3 +318,174 @@ def verify_tsc(request):
     except LegacyTeacher.DoesNotExist:
         data = {"exists": False}
     return JsonResponse(data)
+
+
+# =============================================================================
+# Admin Password Reset
+# =============================================================================
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from django.db.models import Q
+
+
+def admin_reset_password(request):
+    if request.method == "POST":
+        if not request.user.is_authenticated or not (request.user.is_superuser or request.user.is_staff):
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'Permission denied'}, status=403)
+            messages.error(request, "Permission denied.")
+            return redirect("dashboard")
+
+        identifier = request.POST.get("identifier", "").strip()
+        new_password = request.POST.get("new_password", "")
+        confirmation = request.POST.get("password_confirm", "")
+
+        if not identifier:
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'TSC number or email is required.'}, status=400)
+            messages.error(request, "TSC number or email is required.")
+            return redirect("admin_reset_password")
+
+        if not new_password:
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'New password is required.'}, status=400)
+            messages.error(request, "New password is required.")
+            return redirect("admin_reset_password")
+
+        if new_password != confirmation:
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'Passwords do not match.'}, status=400)
+            messages.error(request, "Passwords do not match.")
+            return redirect("admin_reset_password")
+
+        if len(new_password) < 8:
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'Password must be at least 8 characters.'}, status=400)
+            messages.error(request, "Password must be at least 8 characters.")
+            return redirect("admin_reset_password")
+
+        try:
+            user = CustomUser.objects.get(
+                Q(tsc_number__iexact=identifier) | Q(email__iexact=identifier)
+            )
+        except CustomUser.DoesNotExist:
+            if request.headers.get('Accept') == 'application/json':
+                return JsonResponse({'error': 'User not found.'}, status=404)
+            messages.error(request, "User not found.")
+            return redirect("admin_reset_password")
+
+        user.set_password(new_password)
+        user.save()
+
+        if request.headers.get('Accept') == 'application/json':
+            return JsonResponse({
+                'success': True,
+                'message': f"Password for {user.tsc_number} has been reset."
+            })
+
+        messages.success(request, f"Password for {user.get_full_name() or user.tsc_number} has been reset.")
+        return redirect("dashboard")
+
+    return render(request, "accounts/admin_reset_password.html")
+
+
+# =============================================================================
+# User Self-Service Password Reset
+# =============================================================================
+
+def password_reset_request(request):
+    if request.method == "POST":
+        identifier = request.POST.get("identifier", "").strip()
+
+        if not identifier:
+            messages.error(request, "Enter your email or TSC number.")
+            return render(request, "accounts/password_reset_request.html")
+
+        try:
+            user = CustomUser.objects.get(
+                Q(email__iexact=identifier) | Q(tsc_number__iexact=identifier)
+            )
+        except CustomUser.DoesNotExist:
+            # Prevent user enumeration
+            messages.success(request, "If an account exists, reset instructions have been sent.")
+            return render(request, "accounts/password_reset_request.html")
+
+        if not user.email or not has_registered_email(user):
+            messages.error(request, "This account does not have a verified email address. Contact an administrator.")
+            return render(request, "accounts/password_reset_request.html")
+
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_url = request.build_absolute_uri(
+            reverse_lazy("password_reset_confirm", args=[uid, token])
+        )
+
+        subject = "Reset your KUPPET Siaya password"
+        message = (
+            f"Dear {user.first_name or 'Member'},\n\n"
+            "You requested a password reset. Click the link below to set a new password:\n\n"
+            f"{reset_url}\n\n"
+            "This link expires in 1 hour. If you did not request this, please ignore this email.\n\n"
+            "KUPPET Siaya Branch"
+        )
+
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception:
+            logger.exception("Failed to send password reset email to %s", user.email)
+            messages.error(request, "Could not send reset email. Please try again later.")
+            return render(request, "accounts/password_reset_request.html")
+
+        messages.success(request, "Reset instructions have been sent to your email.")
+        return redirect("password_reset_request")
+
+    return render(request, "accounts/password_reset_request.html")
+
+
+def password_reset_confirm(request, uidb64, token):
+    try:
+        from django.utils.http import urlsafe_base64_decode
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+    except (ValueError, CustomUser.DoesNotExist):
+        user = None
+
+    if user is None or not default_token_generator.check_token(user, token):
+        messages.error(request, "Invalid or expired reset link. Please request a new one.")
+        return redirect("password_reset_request")
+
+    if request.method == "POST":
+        new_password = request.POST.get("new_password", "")
+        confirmation = request.POST.get("password_confirm", "")
+
+        if not new_password:
+            messages.error(request, "Please enter a new password.")
+            return render(request, "accounts/password_reset_confirm.html", {"validlink": True})
+
+        if new_password != confirmation:
+            messages.error(request, "Passwords do not match.")
+            return render(request, "accounts/password_reset_confirm.html", {"validlink": True})
+
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return render(request, "accounts/password_reset_confirm.html", {"validlink": True})
+
+        user.set_password(new_password)
+        user.save()
+        messages.success(request, "Your password has been reset. You can now log in.")
+        return redirect("login")
+
+    return render(request, "accounts/password_reset_confirm.html", {"validlink": True})
+
+
+def password_reset_complete(request):
+    return render(request, "accounts/password_reset_complete.html")

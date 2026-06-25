@@ -367,3 +367,216 @@ class AdminCompatibilityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "superuser account")
         self.assertNotIn("_auth_user_id", self.client.session)
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="noreply@example.com",
+)
+class AdminPasswordResetTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_superuser(
+            tsc_number="999999",
+            email="admin@example.com",
+            password="Admin@123",
+            first_name="Admin",
+        )
+        self.member = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email="member@example.com",
+            password="OldPass@123",
+            first_name="Member",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+    def test_admin_can_reset_password_by_tsc(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "123456", "new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Password for Member has been reset.")
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.check_password("NewPass@123"))
+
+    def test_admin_can_reset_password_by_email(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "member@example.com", "new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.check_password("NewPass@123"))
+
+    def test_staff_can_reset_password(self):
+        staff = CustomUser.objects.create_user(
+            tsc_number="222222",
+            email="staff@example.com",
+            password="Staff@123",
+            is_staff=True,
+            approval_status="APPROVED",
+            is_active=True,
+        )
+        self.client.force_login(staff)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "123456", "new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.check_password("NewPass@123"))
+
+    def test_non_staff_cannot_reset_password(self):
+        member = CustomUser.objects.create_user(
+            tsc_number="777777",
+            email="other@example.com",
+            password="Member@123",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+        self.client.force_login(member)
+        response = self.client.post(reverse("admin_reset_password"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_unauthenticated_cannot_reset_password(self):
+        response = self.client.post(reverse("admin_reset_password"))
+        self.assertEqual(response.status_code, 302)
+
+    def test_password_mismatch_shows_error(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "123456", "new_password": "NewPass@123", "password_confirm": "Wrong@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Passwords do not match.")
+
+    def test_user_not_found_shows_error(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "000000", "new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "User not found.")
+
+    def test_admin_reset_returns_json_for_api_client(self):
+        self.client.force_login(self.admin)
+        response = self.client.post(
+            reverse("admin_reset_password"),
+            {"identifier": "123456", "new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+            HTTP_ACCEPT="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("123456", data["message"])
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="noreply@example.com",
+)
+class UserPasswordResetTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            tsc_number="123456",
+            email="member@example.com",
+            password="OldPass@123",
+            first_name="Member",
+            approval_status="APPROVED",
+            is_active=True,
+        )
+
+    def extract_reset_link(self):
+        match = re.search(r"http://[^\s]+/accounts/password-reset-confirm/[^\s]+", mail.outbox[-1].body)
+        self.assertIsNotNone(match)
+        url = match.group(0).rstrip("/")
+        return url
+
+    def test_request_reset_sends_email_for_valid_email(self):
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"identifier": "member@example.com"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("password_reset_request"))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Reset your KUPPET Siaya password", mail.outbox[0].subject)
+        self.assertEqual(mail.outbox[0].to, ["member@example.com"])
+
+    def test_request_reset_sends_email_for_valid_tsc(self):
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"identifier": "123456"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("password_reset_request"))
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_request_reset_does_not_leak_user_existence(self):
+        response = self.client.post(
+            reverse("password_reset_request"),
+            {"identifier": "000000"},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertContains(response, "reset instructions have been sent")
+
+    def test_confirm_reset_updates_password(self):
+        self.client.post(
+            reverse("password_reset_request"),
+            {"identifier": "member@example.com"},
+        )
+        reset_url = self.extract_reset_link()
+        uidb64 = reset_url.split("/password-reset-confirm/")[1].split("/")[0]
+        token = reset_url.split("/")[-1]
+
+        response = self.client.post(
+            reverse("password_reset_confirm", args=[uidb64, token]),
+            {"new_password": "NewPass@123", "password_confirm": "NewPass@123"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("login"))
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("NewPass@123"))
+        self.assertFalse(self.user.check_password("OldPass@123"))
+
+    def test_confirm_reset_rejects_invalid_token(self):
+        response = self.client.get(
+            reverse("password_reset_confirm", args=["baduid", "badtoken"]),
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.headers["Location"], reverse("password_reset_request"))
+
+    def test_confirm_reset_rejects_password_mismatch(self):
+        self.client.post(
+            reverse("password_reset_request"),
+            {"identifier": "member@example.com"},
+        )
+        reset_url = self.extract_reset_link()
+        uidb64 = reset_url.split("/password-reset-confirm/")[1].split("/")[0]
+        token = reset_url.split("/")[-1]
+
+        response = self.client.post(
+            reverse("password_reset_confirm", args=[uidb64, token]),
+            {"new_password": "NewPass@123", "password_confirm": "Wrong@123"},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Passwords do not match")
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("OldPass@123"))
+
+    def test_complete_page_renders(self):
+        response = self.client.get(reverse("password_reset_complete"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Password Reset Complete")
