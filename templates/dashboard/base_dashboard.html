@@ -96,6 +96,7 @@
                         <p class="dashboard-breadcrumb">{% block dashboard_breadcrumb %}Member Portal{% endblock %}</p>
                     </div>
                 </div>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
             </div>
 
             {% block dashboard_content %}{% endblock %}
