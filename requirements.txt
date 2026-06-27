@@ -13,3 +13,4 @@ django-compressor
 djangorestframework
 dj-database-url
 gunicorn
+django-resend==0.1.1

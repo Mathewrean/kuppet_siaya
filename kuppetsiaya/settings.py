@@ -163,6 +163,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
 CSRF_TRUSTED_ORIGINS = unique_list([
     'https://albert-incult-superfluously.ngrok-free.dev',
     'http://127.0.0.1:8010', 'http://localhost:8010',
@@ -222,7 +226,7 @@ elif db_engine == 'django.db.backends.postgresql':
 CONN_MAX_AGE = 60
 
 # Email / SMTP settings
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_HOST = config('EMAIL_HOST', default='')
 EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
@@ -230,18 +234,18 @@ EMAIL_USE_TLS = str_to_bool(config('EMAIL_USE_TLS', default='True'))
 EMAIL_USE_SSL = str_to_bool(config('EMAIL_USE_SSL', default='False'))
 EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 
-# Email backend: use console backend when no SMTP credentials are provided
+RESEND_API_KEY = config('RESEND_API_KEY', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='no-reply@kuppetsiaya.or.ke')
+
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
     default=(
-        'django.core.mail.backends.smtp.EmailBackend'
+        'django_resend.backends.ResendBackend'
+        if RESEND_API_KEY
+        else 'django.core.mail.backends.smtp.EmailBackend'
         if EMAIL_HOST_USER and EMAIL_HOST_PASSWORD
         else 'django.core.mail.backends.console.EmailBackend'
     ),
-)
-DEFAULT_FROM_EMAIL = config(
-    'DEFAULT_FROM_EMAIL',
-    default=EMAIL_HOST_USER or 'no-reply@kuppetsiaya.or.ke',
 )
 SERVER_EMAIL = config('SERVER_EMAIL', default=DEFAULT_FROM_EMAIL)
 
